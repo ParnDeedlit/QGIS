@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/txtinput">
+        <file>txt.svg</file>
+    </qresource>
+</RCC>
