@@ -5,21 +5,17 @@
 #include "qgspostgresconn.h"
 
 class TxtExportToPostgis {
+public:
     TxtExportToPostgis();
     ~TxtExportToPostgis();
 
+    QgsPostgresConn* setConnection(QgsDataSourceUri uri);
+    QgsPostgresConn* getConnection();
+
+    QString checkUser();
+
 private:
-  // std::unique_ptr<QgsPostgresConn> postgisConn;
-  std::unique_ptr<QgsAbstractDatabaseProviderConnection> mConn;
-  const QString mProviderName = QStringLiteral( "postgres" );
-  QString mSchema;
-  QString mTable = QString();
-  QString mPrimaryKeyField = QStringLiteral( "id" );
-  QString mGeomColumn;
-  QString mEncoding = QStringLiteral( "UTF-8" );
-  bool mCreateIndex = true;
-  bool mOverwrite = true;
-  QMap< QString, QVariant > mOptions;
+  QgsPostgresConn *_connection;
 };
 
 #endif // TXTEXPORTTOPOSTGIS_H

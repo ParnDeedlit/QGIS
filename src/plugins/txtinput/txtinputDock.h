@@ -3,6 +3,8 @@
 
 #include "qgsdockwidget.h"
 
+#include "txtexporttopostgis.h"
+
 #include "ui_txtinputDock.h"
 
 class QgisInterface;
@@ -15,11 +17,20 @@ public:
     explicit txtinputDock( QgisInterface *qIface, QWidget *parent = nullptr);
     ~txtinputDock() override;
 private slots:
-    void on_hostEdit_textChanged(QString);
+//    void on_hostEdit_textChanged(QString);
+//    void on_portBox_valueChanged(int host);
+//    void on_databaseEdit_textChanged(QString databasestr);
+//    void on_userEdit_textChanged(QString userstr);
+//    void on_passwordEdit_textChanged(QString passwordstr);
     void on_executeButton_clicked();
 private:
     QgisInterface *qgsInterface = nullptr;
+    TxtExportToPostgis *txtExport = nullptr;
     QString host;
+    QString port;
+    QString database;
+    QString username;
+    QString password;
 };
 
 #endif // TXTINPUTDOCK_H

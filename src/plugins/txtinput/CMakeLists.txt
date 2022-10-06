@@ -31,18 +31,20 @@ target_compile_features(plugin_txtinput PRIVATE cxx_std_17)
 
 include_directories(SYSTEM
   ${GEOS_INCLUDE_DIR}
-  ${POSTGRES_INCLUDE_DIR}
 )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
+
   ${CMAKE_BINARY_DIR}/src/ui
+  ${CMAKE_BINARY_DIR}/src/providers/postgres
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_link_libraries(plugin_txtinput
   qgis_core
   qgis_gui
+  provider_postgres_a
 )
 
 
