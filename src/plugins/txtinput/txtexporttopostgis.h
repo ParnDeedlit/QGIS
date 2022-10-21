@@ -1,21 +1,27 @@
 #ifndef TXTEXPORTTOPOSTGIS_H
 #define TXTEXPORTTOPOSTGIS_H
+#include <QString>
 
-#include "qgsabstractdatabaseproviderconnection.h"
-#include "qgspostgresconn.h"
+#include "libpq-fe.h"
+
+//#include "qgsabstractdatabaseproviderconnection.h"
+//#include "qgspostgresconn.h"
 
 class TxtExportToPostgis {
 public:
     TxtExportToPostgis();
     ~TxtExportToPostgis();
 
-    QgsPostgresConn* setConnection(QgsDataSourceUri uri);
-    QgsPostgresConn* getConnection();
+    PGconn* setConnection(QString host, QString port, QString database, QString username, QString password);
+    PGconn* getConnection();
+
+    bool createTable(QString table);
+    // bool insertItem(QString table);
 
     QString checkUser();
 
 private:
-  QgsPostgresConn *_connection;
+    PGconn *_connection;
 };
 
 #endif // TXTEXPORTTOPOSTGIS_H

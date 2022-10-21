@@ -4,6 +4,7 @@
 #include "qgsdockwidget.h"
 
 #include "txtexporttopostgis.h"
+#include "odata.h"
 
 #include "ui_txtinputDock.h"
 
@@ -23,6 +24,10 @@ private slots:
 //    void on_userEdit_textChanged(QString userstr);
 //    void on_passwordEdit_textChanged(QString passwordstr);
     void on_executeButton_clicked();
+    void on_selectDirctionButton_clicked();
+
+    void on_deleteButton_clicked();
+    void on_createIndexButton_clicked();
 private:
     QgisInterface *qgsInterface = nullptr;
     TxtExportToPostgis *txtExport = nullptr;
@@ -31,6 +36,10 @@ private:
     QString database;
     QString username;
     QString password;
+
+    Map *map;
+
+    PGconn* tryConnectPostgis();
 };
 
 #endif // TXTINPUTDOCK_H

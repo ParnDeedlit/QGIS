@@ -1,23 +1,30 @@
 #include <QMessageBox>
 
+#include "libpq-fe.h"
+
 #include "txtexporttopostgis.h"
 #include "qgsabstractdatabaseproviderconnection.h"
 #include "qgspostgresconn.h"
 
 TxtExportToPostgis::TxtExportToPostgis() {
-
+    _connection = nullptr;
 }
 
-QgsPostgresConn* TxtExportToPostgis::setConnection(QgsDataSourceUri uri) {
-    if ( ! _connection )
+PGconn* TxtExportToPostgis::setConnection(QString host, QString port, QString database, QString username, QString password) {
+    QString conninfo;
+    conninfo = "hostaddr=" + host + " port = " + port + " user = " + username + " password = " + password + " dbname = " + database;
+    _connection = PQconnectdb(conninfo.toStdString().c_str());
+
+    /* Check to see that the backend connection was successfully made */
+    if (PQstatus(_connection) != CONNECTION_OK)
     {
-      _connection = QgsPostgresConn::connectDb( uri, false, true, false );
-      assert( _connection );
+        _connection = nullptr;
+        return nullptr;
     }
     return _connection;
 }
 
-QgsPostgresConn* TxtExportToPostgis::getConnection() {
+PGconn* TxtExportToPostgis::getConnection() {
     if ( ! _connection )
     {
       return nullptr;
@@ -27,11 +34,30 @@ QgsPostgresConn* TxtExportToPostgis::getConnection() {
 
 QString TxtExportToPostgis::checkUser() {
     QString user;
-    QgsPostgresConn *conn = getConnection();
+    PGresult *res;
+    PGconn *conn = getConnection();
     const QString sql = QStringLiteral( "SELECT SESSION_USER, CURRENT_USER;" );
     if (conn == nullptr) return user;
-    QgsPostgresResult result( conn->PQexec( sql ) );
-    // current_user is the same as session_user
-    // user = result.PQgetvalue( 0, 0 ) + result.PQgetvalue( 0, 1 );
+    res = PQexec(conn, sql.toStdString().c_str());
+    user = PQgetvalue(res, 0, 1);
     return user;
+}
+
+bool TxtExportToPostgis::createTable(QString table) {
+    bool result = false;
+    QString sqlres;
+    PGresult *res;
+    PGconn *conn = getConnection();
+
+    const QString sql = "CREATE TABLE"
+        + table
+        + "(id serial primary key, name varchar(20),"
+        + "geom geometry())";
+
+    if (conn == nullptr) return result;
+    res = PQexec(conn, sql.toStdString().c_str());
+    sqlres = PQgetvalue(res, 0, 1);
+    printf(sqlres.toStdString().c_str());
+
+    return result;
 }

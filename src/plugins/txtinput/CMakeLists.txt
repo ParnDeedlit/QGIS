@@ -6,6 +6,14 @@ set (txtinput_SRCS
   txtinput.cpp
   txtinputDock.cpp
   txtexporttopostgis.cpp
+  txtreader.cpp
+  txtwriter.cpp
+  odatadefine.cpp
+  odata.cpp
+  odatalayer.cpp
+  odatafeature.cpp
+  odataattributes.cpp
+  odatageometry.cpp
 )
 
 set (txtinput_UIS

@@ -566,7 +566,8 @@ static void setTitleBarText_( QWidget &qgisApp )
   if ( QgsProject::instance()->isDirty() )
     caption.prepend( '*' );
 
-  caption += QgisApp::tr( "QGIS" );
+  // caption += QgisApp::tr( "Military GIS" );
+  caption += QgisApp::tr( "二维测绘地理服务化工具" );
 
   if ( Qgis::version().endsWith( QLatin1String( "Master" ) ) )
   {
