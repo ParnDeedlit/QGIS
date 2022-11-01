@@ -1,0 +1,38 @@
+#+BEGIN_SRC plantuml :file ./direction.png
+actor QGIS as QGIS
+queue QgsPostgresConnPoolGroup as QgsPostgresConnPoolGroup
+queue QgsConnectionPoolGroup  as QgsConnectionPoolGroup
+database PostGIS as PostGIS
+queue 使用队列 as acquiredConns
+queue 过期队列 as conns
+autonumber
+group 初始化
+QGIS --> PostGIS: 数据连接池初始化
+QGIS -> QgsPostgresConnPoolGroup: 数据连接池初始化
+QgsPostgresConnPoolGroup -> QgsConnectionPoolGroup:构造函数调用基类initTimer
+QgsConnectionPoolGroup -> QgsConnectionPoolGroup:声明一个60秒的定时器
+end
+group 成功申请
+QGIS --> PostGIS: 申请数据库连接acquire
+QGIS -> QgsPostgresConnPoolGroup: acquire
+QgsPostgresConnPoolGroup -> QgsConnectionPoolGroup:acquire
+QgsConnectionPoolGroup -> PostGIS:qgsConnectionPool_ConnectionCreate
+PostGIS -> QgsConnectionPoolGroup:acquire
+acquiredConns -> acquiredConns: acquiredConns + 1
+end
+group 成功释放
+QGIS --> PostGIS: 释放数据库连接release
+QGIS -> QgsPostgresConnPoolGroup: release
+QgsPostgresConnPoolGroup -> QgsConnectionPoolGroup:release
+acquiredConns -> acquiredConns:acquire中acquiredConns - 1
+conns -> conns: conns + 1
+QgsConnectionPoolGroup -> QgsPostgresConnPoolGroup:startExpirationTimer
+QgsPostgresConnPoolGroup -> QgsConnectionPoolGroup :60秒定时器激活
+QgsConnectionPoolGroup -> QgsPostgresConnPoolGroup:60秒时间到，释放连接handleConnectionExpired
+QgsPostgresConnPoolGroup -> QgsConnectionPoolGroup:onConnectionExpired
+QgsConnectionPoolGroup -> QgsConnectionPoolGroup:qgsConnectionPool_ConnectionDestroy
+conns -> conns: conns全部释放
+end
+
+#+END_SRC
+
