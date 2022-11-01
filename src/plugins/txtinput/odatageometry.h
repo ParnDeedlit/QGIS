@@ -26,6 +26,7 @@ public:
     void setCoordinates(double x, double y);
     void setAuxiliary(double x, double y);
     QString toWKT();
+    void unprojtion(ProjType type, ProjUnit unit, double offx, double offy);
 };
 
 class ODataLine {
@@ -35,6 +36,7 @@ public:
     void setCoordinates(BaseLine &line);
     void appendCoordinate(double x, double y);
     QString toWKT();
+    void unprojtion(ProjType type, ProjUnit unit, double offx, double offy);
 };
 
 class ODataPolygon {
@@ -46,6 +48,7 @@ public:
     bool isValidPolygon();
     bool fixToValidPolygon();
     QString toWKT();
+    void unprojtion(ProjType type, ProjUnit unit, double offx, double offy);
 };
 
 class ODataGeometry {
@@ -57,6 +60,7 @@ public:
 
 public:
     QString toWKT();
+    void unprojection(ProjType ptype, ProjUnit punit, double offx, double offy);
 };
 
 #endif // ODATA_GEOMETRY_H

@@ -32,7 +32,7 @@ QString ODataFeature::toPostgis(QString tablename, vector<ODataAttributeMeta> fi
 
     // geometry
     key = key + " geom";
-    value = value + "ST_GeometryFromText('" + geometry.toWKT() + "')";
+    value = value + "ST_GeometryFromText('" + geometry.toWKT() + "', 4326)";
 
     key += " )";
     value += " )";
@@ -96,7 +96,7 @@ ODataFeature* ODataFeature::setProperties(QString linestring, vector<ODataAttrib
     return this;
 }
 
-ODataFeature* ODataFeature::setGeometryPoint(QString linestring, int validIndex) {
+ODataFeature* ODataFeature::setGeometryPoint(QString linestring, int validIndex, MapMataData *mapMatadata) {
     geometry.type = FeatureType::POINT;
     QString strx;
     QString stry;
@@ -132,6 +132,52 @@ ODataFeature* ODataFeature::setGeometryPoint(QString linestring, int validIndex)
         }
     } else {
         isValid = false;
+    }
+    return this;
+}
+
+ODataFeature* ODataFeature::setGeometryLine(QString linestring, MapMataData *mapMatadata) {
+    geometry.type = FeatureType::LINESTRING;
+
+    QString reg("");
+    reg += "\\s*" + ODataDoubleReg;
+    reg += "\\s*" + ODataDoubleReg;
+
+    QRegularExpression re_a(reg);
+    QRegularExpressionMatchIterator i = re_a.globalMatch(linestring);
+    while (i.hasNext()) {
+        isValid = true;
+        QRegularExpressionMatch match_a = i.next();
+        bool validx = false;
+        bool validy = false;
+        double px = match_a.captured(1).toDouble(&validx);
+        double py = match_a.captured(2).toDouble(&validy);
+        if (validx && validy) {
+            geometry.line.appendCoordinate(px, py);
+        }
+    }
+    return this;
+}
+
+ODataFeature* ODataFeature::setGeometryArea(QString linestring, int ringindex, MapMataData *mapMatadata) {
+    geometry.type = FeatureType::POLYGON;
+
+    QString reg("");
+    reg += "\\s*" + ODataDoubleReg;
+    reg += "\\s*" + ODataDoubleReg;
+
+    QRegularExpression re_a(reg);
+    QRegularExpressionMatchIterator i = re_a.globalMatch(linestring);
+    while (i.hasNext()) {
+        isValid = true;
+        QRegularExpressionMatch match_a = i.next();
+        bool validx = false;
+        bool validy = false;
+        double px = match_a.captured(1).toDouble(&validx);
+        double py = match_a.captured(2).toDouble(&validy);
+        if (validx && validy) {
+            geometry.polygon.appendCoordinate(px, py, ringindex);
+        }
     }
     return this;
 }

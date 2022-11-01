@@ -11,35 +11,6 @@
 
 using namespace std;
 
-class MapMataData {
-public:
-    QString name;
-    File file;
-
-    QString origin_bbox;
-    QString lnglat_polygon;
-
-    double a;
-    double e;
-    QString datum;
-    QString proj;
-    double lon_0;
-    double lat_1;
-    double lat_2;
-    QString zone_type;
-    int gauss_number;
-    QString unit;
-    double scale;
-    double origin_x;
-    double origin_y;
-};
-
-class Map {
-public:
-    MapMataData metadata;
-    vector<FileGroup*> groups;
-};
-
 class ODATA {
 private:
     static ODATA *instance;

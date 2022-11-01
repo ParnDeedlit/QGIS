@@ -84,13 +84,13 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         metamodel->setItem(i, 1, new QStandardItem(QString::number(map->metadata.a)));
         metamodel->setItem(i, 2, new QStandardItem(QString::number(map->metadata.e)));
         metamodel->setItem(i, 3, new QStandardItem(map->metadata.datum));
-        metamodel->setItem(i, 4, new QStandardItem(map->metadata.proj));
+        metamodel->setItem(i, 4, new QStandardItem(projTypeToProjTypeName(map->metadata.projType)));
         metamodel->setItem(i, 5, new QStandardItem(QString::number(map->metadata.lon_0)));
         metamodel->setItem(i, 6, new QStandardItem(QString::number(map->metadata.lat_1)));
         metamodel->setItem(i, 7, new QStandardItem(QString::number(map->metadata.lat_2)));
         metamodel->setItem(i, 8, new QStandardItem(map->metadata.zone_type));
         metamodel->setItem(i, 9, new QStandardItem(QString::number(map->metadata.gauss_number)));
-        metamodel->setItem(i, 10, new QStandardItem(map->metadata.unit));
+        metamodel->setItem(i, 10, new QStandardItem(projUnitToProjUnitName(map->metadata.projUnit)));
         metamodel->setItem(i, 11, new QStandardItem(QString::number(map->metadata.scale)));
         metamodel->setItem(i, 12, new QStandardItem(QString::number(map->metadata.origin_x)));
         metamodel->setItem(i, 13, new QStandardItem(QString::number(map->metadata.origin_y)));
@@ -150,16 +150,19 @@ void txtinputDock::on_executeButton_clicked() {
         QString m = filegroup->matadata.layername;
 
         layer_point->setFileGroup(*filegroup)
+                ->setMapMetadata(map->metadata)
                 ->setLayerType(LayerType::Point)
                 ->update()
                 ->excutePostgis(conn);
-//        layer_line->setFileGroup(*filegroup)
-//                ->setLayerType(LayerType::Line)
-//                ->update()
-//                ->excutePostgis(conn);
-//        layer_area->setFileGroup(*filegroup)
-//                ->setLayerType(LayerType::Area)
-//                ->update()
-//                ->excutePostgis(conn);
+        layer_line->setFileGroup(*filegroup)
+                ->setMapMetadata(map->metadata)
+                ->setLayerType(LayerType::Line)
+                ->update()
+                ->excutePostgis(conn);
+        layer_area->setFileGroup(*filegroup)
+                ->setMapMetadata(map->metadata)
+                ->setLayerType(LayerType::Area)
+                ->update()
+                ->excutePostgis(conn);
     }
 }

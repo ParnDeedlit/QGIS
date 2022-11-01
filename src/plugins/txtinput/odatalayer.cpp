@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QRegularExpression>
 #include <QTextCodec>
+#include <QtMath>
 
 using namespace std;
 
@@ -403,6 +404,11 @@ QString Layer::typeToColumn() {
     return fs;
 }
 
+Layer* Layer::setMapMetadata(MapMataData meta) {
+    mapMetadata = meta;
+    return this;
+}
+
 Layer* Layer::setFileGroup(FileGroup group) {
     filegroup = group;
     return this;
@@ -507,6 +513,7 @@ Layer* Layer::readFromSxFilePoint() {
             }
         }
     }
+    file.close();
     return this;
 }
 
@@ -556,6 +563,7 @@ Layer* Layer::readFromSxFileLine() {
             }
         }
     }
+    file.close();
     return this;
 }
 
@@ -605,6 +613,7 @@ Layer* Layer::readFromSxFileArea() {
             }
         }
     }
+    file.close();
     return this;
 }
 
@@ -657,7 +666,7 @@ Layer* Layer::readFromZbFilePoint() {
             if (file_row_number > file_start_index && file_row_number <= file_end_index) {
                 // 实际属性转换代码
                 if (file_cur_index <= features.size()) {
-                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index);
+                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index, &mapMetadata);
                 }
             } else {
                 // 无效行，包括属性文件前几行
@@ -665,25 +674,129 @@ Layer* Layer::readFromZbFilePoint() {
             }
         }
     }
+    file.close();
     return this;
 }
 
 Layer* Layer::readFromZbFileLine() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
 
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_line = false;
+    int line_total_size = 0;
+    int line_cur_index = 0;
+    // int line_end_index = 0;
+    int line_cur_coords_size = 0;
+
+    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_line) {
+            // 开始 定位 "L 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Line);
+            if (count >= 0) {
+                line_total_size = count;
+                find_line = true;
+            }
+        } else if (GeometryLineStringTypeCount(line, LayerType::Area) >= 0) {
+            // 结束 定位 "L 1000" 的结束位置
+            break;
+        } else {
+            bool findnewline = GeometryLineCoordCount(line, line_cur_index, line_cur_coords_size);
+            if (findnewline) {
+                // line_cur_index++;
+                // line_end_index = file_row_number + qCeil(line_cur_coords_size / 6);
+            } else {
+                if (line_cur_index <= features.size()) {
+                    features[line_cur_index - 1].setGeometryLine(line, &mapMetadata);
+                }
+            }
+        }
+    }
+    file.close();
     return this;
 }
 
 Layer* Layer::readFromZbFileArea() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
 
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_area = false;
+    int area_total_size = 0;
+    int area_cur_index = 0;
+    // int area_end_index = 0;
+    int area_cur_ring_count = 0;
+    int area_cur_ring_number = 0;
+    int area_cur_ring_index = -1;
+    int area_cur_ring_coords_size = 0;
+
+    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_area) {
+            // 开始 定位 "L 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Area);
+            if (count >= 0) {
+                area_total_size = count;
+                find_area = true;
+            }
+        } else {
+            bool findnewarea = GeometryAreaRingCount(line, area_cur_index, area_cur_ring_count);
+            if (findnewarea) {
+                area_cur_ring_index = -1;
+                if (area_cur_ring_count == 0) {
+                    // 1        0.000000        0.000000          0 不做任何处理
+                    area_cur_ring_number = file_row_number;
+                    printf("0. empty area do nothing!  \r\n");
+                } else {
+                    area_cur_ring_number = file_row_number + 1;
+                    printf("1. valid area do loop!  \r\n");
+                }
+            } else {
+                if (file_row_number == area_cur_ring_number) {
+                    GeometryAreaCoordCount(line, area_cur_ring_coords_size);
+                    printf("2. count area ring!  \r\n");
+                    area_cur_ring_index++;
+                } else {
+                    if (area_cur_index <= features.size()) {
+                        printf("3. loop area ring point! %d \r\n", area_cur_index);
+                        features[area_cur_index - 1].setGeometryArea(line, area_cur_ring_index, &mapMetadata);
+                    }
+                }
+            }
+        }
+    }
+    file.close();
     return this;
 }
 
 void Layer::writeToPostgis(PGconn *conn) {
     int count = features.size();
+    printf("features all count %i \r\n", count);
     for (int i = 0; i < count; i++) {
         ODataFeature feature = features[i];
-        if (true || feature.isValid) {
+        if (feature.isValid) {
+            feature.geometry.unprojection(
+                        mapMetadata.projType, mapMetadata.projUnit,
+                        mapMetadata.origin_x, mapMetadata.origin_y);
             QString sql = feature.toPostgis(uri, fields);
+            // printf(QString::number(feature.type).toStdString().c_str());
             printf(sql.toStdString().c_str());
             printf("\r\n");
             PGresult *res = PQexec(conn, sql.toStdString().c_str());

@@ -20,6 +20,15 @@ QString ODataPoint::toWKT() {
     return wkt;
 }
 
+void ODataPoint::unprojtion(ProjType type, ProjUnit unit, double offx, double offy) {
+    if (type == ProjType::Equal_Angle_Cone && unit == ProjUnit::Second) {
+        coordinates.x = offx + coordinates.x / 3600;
+        coordinates.y = offy + coordinates.y / 3600;
+        auxiliary.x = offx + auxiliary.x / 3600;
+        auxiliary.y = offy + auxiliary.y / 3600;
+    }
+}
+
 void ODataLine::setCoordinates(BaseLine &line) {
 
 }
@@ -48,6 +57,16 @@ QString ODataLine::toWKT() {
     return wkt;
 }
 
+void ODataLine::unprojtion(ProjType type, ProjUnit unit, double offx, double offy) {
+    if (type == ProjType::Equal_Angle_Cone && unit == ProjUnit::Second) {
+        int count = coordinates.size();
+        for (int i = 0; i < count; i++) {
+            coordinates[i].x = offx + (double)(coordinates[i].x / 3600);
+            coordinates[i].y = offy + (double)(coordinates[i].y / 3600);
+        }
+    }
+}
+
 void ODataPolygon::setCoordinates(BaseLine &line, int ring_index) {
 
 }
@@ -60,8 +79,7 @@ void ODataPolygon::appendCoordinate(double x, double y, int ring_index) {
         emptyline.push_back(point);
         coordinates.push_back(emptyline);
     } else {
-        BaseLine line = coordinates[ring_index];
-        line.push_back(point);
+        coordinates[ring_index].push_back(point);
     }
 }
 
@@ -87,7 +105,7 @@ QString ODataPolygon::toWKT() {
                     + QString::number(point.x)
                     + " "
                     + QString::number(point.y);
-            if (i < pointcouts - 1) {
+            if (j < pointcouts - 1) {
                 wkt += ",";
             }
         }
@@ -100,9 +118,31 @@ QString ODataPolygon::toWKT() {
     return wkt;
 }
 
+void ODataPolygon::unprojtion(ProjType type, ProjUnit unit, double offx, double offy) {
+    if (type == ProjType::Equal_Angle_Cone && unit == ProjUnit::Second) {
+        int count = coordinates.size();
+        for (int i = 0; i < count; i++) {
+            int points = coordinates[i].size();
+            for (int j = 0; j < points; j++) {
+                coordinates[i][j].x = offx + (double)(coordinates[i][j].x / 3600);
+                coordinates[i][j].y = offy + (double)(coordinates[i][j].y / 3600);
+            }
+        }
+    }
+}
+
+void ODataGeometry::unprojection(ProjType ptype, ProjUnit punit, double offx, double offy){
+    if (type == FeatureType::POINT) {
+        point.unprojtion(ptype, punit, offx, offy);
+    } else if (type == FeatureType::LINESTRING) {
+        line.unprojtion(ptype, punit, offx, offy);
+    } else if (type == FeatureType::POLYGON) {
+        polygon.unprojtion(ptype, punit, offx, offy);
+    }
+}
+
 QString ODataGeometry::toWKT() {
     QString wkt;
-    wkt = point.toWKT();
     if (type == FeatureType::POINT) {
         wkt = point.toWKT();
     } else if (type == FeatureType::LINESTRING) {
@@ -110,6 +150,6 @@ QString ODataGeometry::toWKT() {
     } else if (type == FeatureType::POLYGON) {
         wkt = polygon.toWKT();
     }
-printf(QString(" ODataGeometry::toWKT " + QString::number(type) + " \r\n").toStdString().c_str());
+    // printf(QString(" ODataGeometry::toWKT " + QString::number(type) + " \r\n").toStdString().c_str());
     return wkt;
 }

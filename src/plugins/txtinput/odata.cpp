@@ -151,42 +151,42 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
         QString suffix = list[i].suffix();
         if (suffix.compare("SMS") == 0) {
         } else {
-            if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("C") == 0) {
-                File layer;
-                layer.name = list[i].baseName();
-                layer.layername = suffix.mid(0, 1).toUpper();
-                layer.filetype = suffix.mid(1, 2).toUpper();
-                layer.suffix = list[i].suffix();
-                layer.path = list[i].absoluteFilePath();
-                layer.prefix = list[i].baseName();
-                layer.cn_name = getCnnameByShortName(layer.layername);
-                layer.code = getCodeByShortName(layer.layername);
-                auto it = groupMap.find(layer.layername);
-                if ( it != groupMap.end()) {
-                    if (layer.filetype.compare("MS") == 0) {
-                        it->second->matadata = layer;
-                    } else if (layer.filetype.compare("SX") == 0) {
-                        it->second->attrbution = layer;
-                    } else if (layer.filetype.compare("TP") == 0) {
-                        it->second->topylogy = layer;
-                    } else if (layer.filetype.compare("ZB") == 0) {
-                        it->second->geometry = layer;
-                    }
-                } else {
-                    FileGroup *group = new FileGroup();
-                    group->layername = layer.layername;
-                    if (layer.filetype.compare("MS") == 0) {
-                        group->matadata = layer;
-                    } else if (layer.filetype.compare("SX") == 0) {
-                        group->attrbution = layer;
-                    } else if (layer.filetype.compare("TP") == 0) {
-                        group->topylogy = layer;
-                    } else if (layer.filetype.compare("ZB") == 0) {
-                        group->geometry = layer;
-                    }
-                    groupMap.emplace(layer.layername, group);
+            //if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("C") == 0) {
+            File layer;
+            layer.name = list[i].baseName();
+            layer.layername = suffix.mid(0, 1).toUpper();
+            layer.filetype = suffix.mid(1, 2).toUpper();
+            layer.suffix = list[i].suffix();
+            layer.path = list[i].absoluteFilePath();
+            layer.prefix = list[i].baseName();
+            layer.cn_name = getCnnameByShortName(layer.layername);
+            layer.code = getCodeByShortName(layer.layername);
+            auto it = groupMap.find(layer.layername);
+            if ( it != groupMap.end()) {
+                if (layer.filetype.compare("MS") == 0) {
+                    it->second->matadata = layer;
+                } else if (layer.filetype.compare("SX") == 0) {
+                    it->second->attrbution = layer;
+                } else if (layer.filetype.compare("TP") == 0) {
+                    it->second->topylogy = layer;
+                } else if (layer.filetype.compare("ZB") == 0) {
+                    it->second->geometry = layer;
                 }
+            } else {
+                FileGroup *group = new FileGroup();
+                group->layername = layer.layername;
+                if (layer.filetype.compare("MS") == 0) {
+                    group->matadata = layer;
+                } else if (layer.filetype.compare("SX") == 0) {
+                    group->attrbution = layer;
+                } else if (layer.filetype.compare("TP") == 0) {
+                    group->topylogy = layer;
+                } else if (layer.filetype.compare("ZB") == 0) {
+                    group->geometry = layer;
+                }
+                groupMap.emplace(layer.layername, group);
             }
+            //}
         }
     }
 
@@ -250,7 +250,7 @@ bool ODATA::parseMapMataData(Map *map) {
         } else if (MetadataLineStringMatchReg(line, "大地基准")) {
             map->metadata.datum = MetadataLineStringToStringByReg(line, "大地基准");
         } else if (MetadataLineStringMatchReg(line, "地图投影")) {
-            map->metadata.proj = MetadataLineStringToStringByReg(line, "地图投影");
+            map->metadata.projType = projTypeNameToProjType(MetadataLineStringToStringByReg(line, "地图投影"));
         } else if (MetadataLineStringMatchReg(line, "中央经线")) {
             map->metadata.lon_0 = MetadataLineStringToDoubleByReg(line, "中央经线");
         } else if (MetadataLineStringMatchReg(line, "标准纬线1")) {
@@ -262,7 +262,7 @@ bool ODATA::parseMapMataData(Map *map) {
         } else if (MetadataLineStringMatchReg(line, "高斯投影带号")) {
             map->metadata.gauss_number = MetadataLineStringToIntByReg(line, "高斯投影带号");
         } else if (MetadataLineStringMatchReg(line, "坐标单位")) {
-            map->metadata.unit = MetadataLineStringToStringByReg(line, "坐标单位");
+            map->metadata.projUnit = projUnitNameToProjUnit(MetadataLineStringToStringByReg(line, "坐标单位"));
         } else if (MetadataLineStringMatchReg(line, "坐标放大系数")) {
             map->metadata.scale = MetadataLineStringToDoubleByReg(line, "坐标放大系数");
         } else if (MetadataLineStringMatchReg(line, "相对原点横坐标")) {
