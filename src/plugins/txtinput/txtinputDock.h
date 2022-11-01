@@ -1,12 +1,16 @@
 #ifndef TXTINPUTDOCK_H
 #define TXTINPUTDOCK_H
 
+#include <stdio.h>
+
 #include "qgsdockwidget.h"
 
 #include "txtexporttopostgis.h"
 #include "odata.h"
 
 #include "ui_txtinputDock.h"
+
+using namespace std;
 
 class QgisInterface;
 
@@ -37,7 +41,7 @@ private:
     QString username;
     QString password;
 
-    Map *map;
+    vector<Map*> maps;
 
     PGconn* tryConnectPostgis();
 };

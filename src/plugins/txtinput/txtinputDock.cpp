@@ -73,7 +73,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         tablemodel->setItem(i, 1, new QStandardItem(dirinfos[i].path));
         QFileInfoList nodefiles = reader.readNodeDir(dirinfos[i].path);
         ODATA odata;
-        map = odata.initMap(nodefiles);
+        Map* map = odata.initMap(nodefiles);
         odata.parseMap(map);
         std::vector<FileGroup*> valids =  map->groups;
         int layercount = valids.size();
@@ -94,6 +94,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         metamodel->setItem(i, 11, new QStandardItem(QString::number(map->metadata.scale)));
         metamodel->setItem(i, 12, new QStandardItem(QString::number(map->metadata.origin_x)));
         metamodel->setItem(i, 13, new QStandardItem(QString::number(map->metadata.origin_y)));
+        maps.push_back(map);
     }
 
     tablemodel->setRowCount(dirinfos.size());
@@ -108,61 +109,79 @@ void txtinputDock::on_createIndexButton_clicked() {
 void txtinputDock::on_deleteButton_clicked() {
     PGconn *conn = tryConnectPostgis();
 
-    int count = map->groups.size();
-    for (int i = 0; i < count; i++) {
-        FileGroup *filegroup = map->groups[i];
+    int map_count = maps.size();
+    for (int index = 0; index < map_count; index++) {
+        Map* map = maps[index];
+        int count = map->groups.size();
+        for (int i = 0; i < count; i++) {
+            FileGroup *filegroup = map->groups[i];
 
-        Layer *layer_point = new Layer;
-        Layer *layer_line = new Layer;
-        Layer *layer_area = new Layer;
-        Layer *layer_anno = new Layer;
-        QString m = filegroup->matadata.layername;
-        layer_point->setFileGroup(*filegroup)
-                ->setLayerType(LayerType::Point)
-                ->update()
-                ->deletePostgisHasExist(conn);
-        layer_line->setFileGroup(*filegroup)
-                ->setLayerType(LayerType::Line)
-                ->update()
-                ->deletePostgisHasExist(conn);
-        layer_area->setFileGroup(*filegroup)
-                ->setLayerType(LayerType::Area)
-                ->update()
-                ->deletePostgisHasExist(conn);
-        layer_anno->setFileGroup(*filegroup)
-                ->setLayerType(LayerType::Anno)
-                ->update()
-                ->deletePostgisHasExist(conn);
+            Layer *layer_point = new Layer;
+            Layer *layer_line = new Layer;
+            Layer *layer_area = new Layer;
+            Layer *layer_anno = new Layer;
+            QString m = filegroup->matadata.layername;
+            layer_point->setFileGroup(*filegroup)
+                    ->setLayerType(LayerType::Point)
+                    ->update()
+                    ->deletePostgisHasExist(conn);
+            layer_line->setFileGroup(*filegroup)
+                    ->setLayerType(LayerType::Line)
+                    ->update()
+                    ->deletePostgisHasExist(conn);
+            layer_area->setFileGroup(*filegroup)
+                    ->setLayerType(LayerType::Area)
+                    ->update()
+                    ->deletePostgisHasExist(conn);
+            layer_anno->setFileGroup(*filegroup)
+                    ->setLayerType(LayerType::Anno)
+                    ->update()
+                    ->deletePostgisHasExist(conn);
+        }
     }
 }
 
 void txtinputDock::on_executeButton_clicked() {
     PGconn *conn = tryConnectPostgis();
+    int map_count = maps.size();
+    for (int index = 0; index < map_count; index++) {
+        Map* map = maps[index];
+        int count = map->groups.size();
+        for (int i = 0; i < count; i++) {
+            FileGroup *filegroup = map->groups[i];
+            QString m = filegroup->matadata.layername;
 
-    int count = map->groups.size();
-    for (int i = 0; i < count; i++) {
-        FileGroup *filegroup = map->groups[i];
-
-        Layer *layer_point = new Layer;
-        Layer *layer_line = new Layer;
-        Layer *layer_area = new Layer;
-        Layer *layer_anno = new Layer;
-        QString m = filegroup->matadata.layername;
-
-        layer_point->setFileGroup(*filegroup)
-                ->setMapMetadata(map->metadata)
-                ->setLayerType(LayerType::Point)
-                ->update()
-                ->excutePostgis(conn);
-        layer_line->setFileGroup(*filegroup)
-                ->setMapMetadata(map->metadata)
-                ->setLayerType(LayerType::Line)
-                ->update()
-                ->excutePostgis(conn);
-        layer_area->setFileGroup(*filegroup)
-                ->setMapMetadata(map->metadata)
-                ->setLayerType(LayerType::Area)
-                ->update()
-                ->excutePostgis(conn);
+            if(filegroup->matadata.code.compare("280000") == 0) {
+                Layer *layer_anno = new Layer;
+                layer_anno->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Anno)
+                        ->update()
+                        ->excutePostgis(conn);
+                delete layer_anno;
+            } else {
+                Layer *layer_point = new Layer;
+                Layer *layer_line = new Layer;
+                Layer *layer_area = new Layer;
+                layer_point->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Point)
+                        ->update()
+                        ->excutePostgis(conn);
+                layer_line->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Line)
+                        ->update()
+                        ->excutePostgis(conn);
+                layer_area->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Area)
+                        ->update()
+                        ->excutePostgis(conn);
+                delete layer_point;
+                delete layer_line;
+                delete layer_area;
+            }
+        }
     }
 }

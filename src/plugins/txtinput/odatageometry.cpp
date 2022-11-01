@@ -16,7 +16,6 @@ QString ODataPoint::toWKT() {
             + " "
             + QString::number(coordinates.y)
             + ")";
-    printf(QString(wkt + "ODataPoint::toWKT \r\n").toStdString().c_str());
     return wkt;
 }
 

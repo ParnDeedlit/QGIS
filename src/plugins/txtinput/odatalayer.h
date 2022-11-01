@@ -43,11 +43,13 @@ public:
     Layer* readFromSxFilePoint();
     Layer* readFromSxFileLine();
     Layer* readFromSxFileArea();
+    Layer* readFromSxFileAnno();
 
     Layer* readFromZbFile();
     Layer* readFromZbFilePoint();
     Layer* readFromZbFileLine();
     Layer* readFromZbFileArea();
+    Layer* readFromZbFileAnno();
 
 private:
     Layer* parseField();

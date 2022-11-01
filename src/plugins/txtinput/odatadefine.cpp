@@ -154,6 +154,9 @@ int AttributeLineStringTypeCount(QString linestring, LayerType type) {
     case LayerType::Area:
         layertype = "A";
         break;
+    case LayerType::Anno:
+        layertype = "N";
+        break;
     default:
         break;
     }
@@ -181,6 +184,9 @@ int GeometryLineStringTypeCount(QString linestring, LayerType type) {
         break;
     case LayerType::Area:
         layertype = "A";
+        break;
+    case LayerType::Anno:
+        layertype = "N";
         break;
     default:
         break;

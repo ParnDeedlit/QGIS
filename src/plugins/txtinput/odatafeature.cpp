@@ -62,9 +62,9 @@ ODataFeature* ODataFeature::setProperties(QString linestring, vector<ODataAttrib
     QRegularExpressionMatch match_a = re_a.match(linestring);
     if(match_a.hasMatch()) {
         isValid = true;
-        // printf(QString(match_a.captured(0) + "\r\n").toStdString().c_str());
+        //printf(QString(match_a.captured(0) + "\r\n").toStdString().c_str());
         QString index = match_a.captured(1);
-        // printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
+        //printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
         if(index.toInt() == validIndex) {
             isValid = true;
             for(int i = 0; i < count; i++) {
@@ -178,6 +178,46 @@ ODataFeature* ODataFeature::setGeometryArea(QString linestring, int ringindex, M
         if (validx && validy) {
             geometry.polygon.appendCoordinate(px, py, ringindex);
         }
+    }
+    return this;
+}
+
+ODataFeature* ODataFeature::setGeometryAnno(QString linestring, int validIndex, MapMataData *mapMatadata) {
+    geometry.type = FeatureType::POINT;
+    QString strx;
+    QString stry;
+    QString strx1;
+    QString stry1;
+    const int first_index = 2;
+    QString reg("\\s*(\\d+)");
+
+    reg += "\\s*" + ODataDoubleReg;
+    reg += "\\s*" + ODataDoubleReg;
+    reg += "\\s*" + ODataDoubleReg;
+    reg += "\\s*" + ODataDoubleReg;
+
+    QRegularExpression re_a(reg);
+    QRegularExpressionMatch match_a = re_a.match(linestring);
+    if(match_a.hasMatch()) {
+        isValid = true;
+        // printf(QString(match_a.captured(2) + "  " + match_a.captured(3) + "\r\n").toStdString().c_str());
+        QString index = match_a.captured(1);
+        // printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
+        if(index.toInt() == validIndex) {
+            strx = match_a.captured(0 + first_index);
+            stry = match_a.captured(1 + first_index);
+            strx1 = match_a.captured(2 + first_index);
+            stry1 = match_a.captured(3 + first_index);
+            geometry.point.coordinates.x = strx.toDouble();
+            geometry.point.coordinates.y = stry.toDouble();
+            geometry.point.auxiliary.x = strx1.toDouble();
+            geometry.point.auxiliary.y = stry1.toDouble();
+            // printf("x %f,  y %f \r\n", strx.toDouble() ,stry.toDouble());
+        } else {
+            isValid = false;
+        }
+    } else {
+        isValid = false;
     }
     return this;
 }

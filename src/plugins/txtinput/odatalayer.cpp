@@ -293,7 +293,12 @@ vector<ODataAttributeMeta> FIELDS_Q = {
 
 vector<ODataAttributeMeta> FIELDS_R = {
     ODataAttributeMeta(QString("编码"), QString("int"), 10),
-    ODataAttributeMeta(QString("名称"), QString("string"), 100)
+    ODataAttributeMeta(QString("名称"), QString("string"), 100),
+    ODataAttributeMeta(QString("字体"), QString("string"), 20),
+    ODataAttributeMeta(QString("字形"), QString("string"), 20),
+    ODataAttributeMeta(QString("字级"), QString("string"), 10),
+    ODataAttributeMeta(QString("字向"), QString("string"), 10),
+    ODataAttributeMeta(QString("颜色"), QString("string"), 20)
 };
 
 Layer* Layer::update() {
@@ -462,6 +467,8 @@ Layer* Layer::readFromSxFile() {
         readFromSxFileLine();
     } else if (type == LayerType::Area) {
         readFromSxFileArea();
+    } else if (type == LayerType::Anno) {
+        readFromSxFileAnno();
     }
     return this;
 }
@@ -617,6 +624,52 @@ Layer* Layer::readFromSxFileArea() {
     return this;
 }
 
+Layer* Layer::readFromSxFileAnno() {
+    QFile file(filegroup.attrbution.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_anno = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_anno) {
+            // 开始 定位 "P 1000" 的开始位置
+            int count = AttributeLineStringTypeCount(line, LayerType::Anno);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_anno = true;
+            }
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                ODataFeature feature;
+                feature.type = FeatureType::POINT;
+                feature.setProperties(line, fields, file_cur_index);
+                features.push_back(feature);
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
 Layer* Layer::readFromZbFile() {
     if (type == LayerType::Point) {
         readFromZbFilePoint();
@@ -624,6 +677,8 @@ Layer* Layer::readFromZbFile() {
         readFromZbFileLine();
     } else if (type == LayerType::Area) {
         readFromZbFileArea();
+    } else if (type == LayerType::Anno) {
+        readFromZbFileAnno();
     }
     return this;
 }
@@ -763,22 +818,68 @@ Layer* Layer::readFromZbFileArea() {
                 if (area_cur_ring_count == 0) {
                     // 1        0.000000        0.000000          0 不做任何处理
                     area_cur_ring_number = file_row_number;
-                    printf("0. empty area do nothing!  \r\n");
+                    // printf("0. empty area do nothing!  \r\n");
                 } else {
                     area_cur_ring_number = file_row_number + 1;
-                    printf("1. valid area do loop!  \r\n");
+                    // printf("1. valid area do loop!  \r\n");
                 }
             } else {
                 if (file_row_number == area_cur_ring_number) {
                     GeometryAreaCoordCount(line, area_cur_ring_coords_size);
-                    printf("2. count area ring!  \r\n");
+                    // printf("2. count area ring!  \r\n");
                     area_cur_ring_index++;
                 } else {
                     if (area_cur_index <= features.size()) {
-                        printf("3. loop area ring point! %d \r\n", area_cur_index);
+                        // printf("3. loop area ring point! %d \r\n", area_cur_index);
                         features[area_cur_index - 1].setGeometryArea(line, area_cur_ring_index, &mapMetadata);
                     }
                 }
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromZbFileAnno() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_anno = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_anno) {
+            // printf("find_point %d \r\n", file_row_number);
+            // 开始 定位 "P 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Anno);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_anno = true;
+            }
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                if (file_cur_index <= features.size()) {
+                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index, &mapMetadata);
+                }
+            } else {
+                // 无效行，包括属性文件前几行
+
             }
         }
     }
@@ -797,8 +898,8 @@ void Layer::writeToPostgis(PGconn *conn) {
                         mapMetadata.origin_x, mapMetadata.origin_y);
             QString sql = feature.toPostgis(uri, fields);
             // printf(QString::number(feature.type).toStdString().c_str());
-            printf(sql.toStdString().c_str());
-            printf("\r\n");
+            // printf(sql.toStdString().c_str());
+            // printf("\r\n");
             PGresult *res = PQexec(conn, sql.toStdString().c_str());
         } else {
 //            QString sql = feature.toPostgis(uri, fields);

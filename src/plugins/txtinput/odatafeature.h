@@ -22,6 +22,7 @@ public:
     ODataFeature* setGeometryPoint(QString linestring, int validIndex, MapMataData *mapMatadata);
     ODataFeature* setGeometryLine(QString linestring, MapMataData *mapMatadata);
     ODataFeature* setGeometryArea(QString linestring, int ringindex, MapMataData *mapMatadata);
+    ODataFeature* setGeometryAnno(QString linestring, int validIndex, MapMataData *mapMatadata);
     ODataFeature* setProperties(QString linestring, vector<ODataAttributeMeta> fields, int validIndex);
 };
 
