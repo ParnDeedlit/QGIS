@@ -52,11 +52,18 @@ ODataFeature* ODataFeature::setProperties(QString linestring, vector<ODataAttrib
         if (meta.fieldtype.compare("double") == 0) {
             reg += "\\s*(NULL|-?[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*|0?\\.0+|0)";
         } else if (meta.fieldtype.compare("int") == 0) {
-            reg += "\\s*(NULL|-?\\d+)";
+            if (meta.fieldname.compare("编码") == 0) {
+                // reg += "\\s*(NULL|\\d)";
+                reg += "\\s*(NULL|-?\\d+)";
+            } else {
+                reg += "\\s*(NULL|-?\\d+)";
+            }
         } else if (meta.fieldtype.compare("string") == 0) {
             reg += "\\s*([\\w\u4E00-\u9FA5A-Za-z0-9_、]+)";
         }
     }
+
+    printf("reg %s\r\n", reg.toStdString().c_str());
 
     QRegularExpression re_a(reg);
     QRegularExpressionMatch match_a = re_a.match(linestring);
@@ -78,7 +85,10 @@ ODataFeature* ODataFeature::setProperties(QString linestring, vector<ODataAttrib
                 } else if (meta.fieldtype == "int") {
                     ODataAttribute attr;
                     attr.type = "int";
-                    attr.value = str.toUInt();
+                    attr.value = str.toInt();
+                    if (i == 0) {
+                        printf("attr %d %s %s\r\n", str.toInt(), reg.toStdString().c_str(), linestring.toStdString().c_str());
+                    }
                     properties.push_back(attr);
                 } else if (meta.fieldtype == "double") {
                     ODataAttribute attr;

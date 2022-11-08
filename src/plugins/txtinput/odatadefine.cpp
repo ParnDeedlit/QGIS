@@ -132,12 +132,13 @@ int MetadataLineStringToIntByReg(QString linestring, QString patch) {
 
 QString MetadataLineStringToStringByReg(QString linestring, QString patch) {
     QString str;
-    QString reg("\\s+" + patch + "\\s*([\\w\u4E00-\u9FA5A-Za-z0-9_]+)");
+    QString reg("\\s+" + patch + "\\s*([\\w\u4E00-\u9FA5A-Za-z0-9_－]+)");
     QRegularExpression re_a(reg);
     QRegularExpressionMatch match_a = re_a.match(linestring);
     if(match_a.hasMatch()) {
        str = match_a.captured(1);
     }
+    printf(str.toStdString().c_str());
     return str;
 }
 

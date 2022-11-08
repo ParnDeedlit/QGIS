@@ -893,13 +893,11 @@ void Layer::writeToPostgis(PGconn *conn) {
     for (int i = 0; i < count; i++) {
         ODataFeature feature = features[i];
         if (feature.isValid) {
-            feature.geometry.unprojection(
-                        mapMetadata.projType, mapMetadata.projUnit,
-                        mapMetadata.origin_x, mapMetadata.origin_y);
+            feature.geometry.unprojection(&mapMetadata);
             QString sql = feature.toPostgis(uri, fields);
             // printf(QString::number(feature.type).toStdString().c_str());
-            // printf(sql.toStdString().c_str());
-            // printf("\r\n");
+            printf(sql.toStdString().c_str());
+            printf("\r\n");
             PGresult *res = PQexec(conn, sql.toStdString().c_str());
         } else {
 //            QString sql = feature.toPostgis(uri, fields);

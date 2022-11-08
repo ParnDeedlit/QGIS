@@ -10,6 +10,10 @@
 #include "odata.h"
 #include "odatalayer.h"
 
+#include "gauss.h"
+#include "coordnate.h"
+#include "ellipsoid.h"
+
 #include "qgisinterface.h"
 
 txtinputDock::txtinputDock(QgisInterface *qIface, QWidget *parent)
@@ -152,13 +156,13 @@ void txtinputDock::on_executeButton_clicked() {
             QString m = filegroup->matadata.layername;
 
             if(filegroup->matadata.code.compare("280000") == 0) {
-                Layer *layer_anno = new Layer;
-                layer_anno->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Anno)
-                        ->update()
-                        ->excutePostgis(conn);
-                delete layer_anno;
+//                Layer *layer_anno = new Layer;
+//                layer_anno->setFileGroup(*filegroup)
+//                        ->setMapMetadata(map->metadata)
+//                        ->setLayerType(LayerType::Anno)
+//                        ->update()
+//                        ->excutePostgis(conn);
+//                delete layer_anno;
             } else {
                 Layer *layer_point = new Layer;
                 Layer *layer_line = new Layer;
@@ -168,16 +172,16 @@ void txtinputDock::on_executeButton_clicked() {
                         ->setLayerType(LayerType::Point)
                         ->update()
                         ->excutePostgis(conn);
-                layer_line->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Line)
-                        ->update()
-                        ->excutePostgis(conn);
-                layer_area->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Area)
-                        ->update()
-                        ->excutePostgis(conn);
+//                layer_line->setFileGroup(*filegroup)
+//                        ->setMapMetadata(map->metadata)
+//                        ->setLayerType(LayerType::Line)
+//                        ->update()
+//                        ->excutePostgis(conn);
+//                layer_area->setFileGroup(*filegroup)
+//                        ->setMapMetadata(map->metadata)
+//                        ->setLayerType(LayerType::Area)
+//                        ->update()
+//                        ->excutePostgis(conn);
                 delete layer_point;
                 delete layer_line;
                 delete layer_area;

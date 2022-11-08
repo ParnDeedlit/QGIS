@@ -14,6 +14,9 @@ set (txtinput_SRCS
   odatafeature.cpp
   odataattributes.cpp
   odatageometry.cpp
+  ellipsoid.cpp
+  projection.cpp
+  gauss.cpp
 )
 
 set (txtinput_UIS
