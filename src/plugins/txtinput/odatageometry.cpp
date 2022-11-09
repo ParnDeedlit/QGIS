@@ -14,9 +14,9 @@ void ODataPoint::setAuxiliary(double x, double y) {
 QString ODataPoint::toWKT() {
     QString wkt;
     wkt = "POINT("
-            + QString::number(coordinates.x)
+            + QString::number(coordinates.x, 'g', 16)
             + " "
-            + QString::number(coordinates.y)
+            + QString::number(coordinates.y, 'g', 16)
             + ")";
     return wkt;
 }
@@ -62,9 +62,9 @@ QString ODataLine::toWKT() {
     for (int i = 0; i < count; i++) {
         BasePoint point = coordinates[i];
         wkt = wkt
-                + QString::number(point.x)
+                + QString::number(point.x, 'g', 16)
                 + " "
-                + QString::number(point.y);
+                + QString::number(point.y, 'g', 16);
         if (i < count - 1) {
             wkt += ",";
         }
@@ -95,6 +95,7 @@ void ODataLine::unprojtion(MapMataData *mata) {
             coordinates[i].y += mata->origin_y;
             PlaneCoordinate plane = PlaneCoordinate(coordinates[i].x, coordinates[i].y);
             GeodeticCoordinate coord = gauss.inverse(plane);
+            // printf("lng lat x y  %f %f %f %f \r\n", coord.lng * 1000000, coord.lat * 1000000, plane.x, plane.y);
             coordinates[i].x  = coord.lng;
             coordinates[i].y= coord.lat;
         }
@@ -136,9 +137,9 @@ QString ODataPolygon::toWKT() {
         for (int j = 0; j < pointcouts; j++) {
             BasePoint point = line[j];
             wkt = wkt
-                    + QString::number(point.x)
+                    + QString::number(point.x, 'g', 16)
                     + " "
-                    + QString::number(point.y);
+                    + QString::number(point.y, 'g', 16);
             if (j < pointcouts - 1) {
                 wkt += ",";
             }
@@ -166,7 +167,7 @@ void ODataPolygon::unprojtion(MapMataData *mata) {
         Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
         GaussProjection gauss;
         gauss.ellipsoid = xian80;
-        gauss.falseEasting = mata->gauss_number * 1000000 + 500000.0;
+        gauss.falseEasting = mata->gauss_number * 1000000.0 + 500000.0;
         gauss.falseNorthing = 0.0;
         gauss.latitudeOfNaturalOrigin = 0.0;
         gauss.longitudeOfNaturalOrigin = mata->lon_0;
@@ -179,6 +180,7 @@ void ODataPolygon::unprojtion(MapMataData *mata) {
                 coordinates[i][j].y += mata->origin_y;
                 PlaneCoordinate plane = PlaneCoordinate(coordinates[i][j].x, coordinates[i][j].y);
                 GeodeticCoordinate coord = gauss.inverse(plane);
+                // printf("lng lat x y  %f %f %f %f \r\n", coord.lng * 1000000, coord.lat * 1000000, plane.x, plane.y);
                 coordinates[i][j].x  = coord.lng;
                 coordinates[i][j].y= coord.lat;
             }

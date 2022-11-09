@@ -776,12 +776,12 @@ Layer* Layer::readFromZbFileLine() {
 
             if (findnewline) {
                 line_last_index = line_cur_index;
-                printf("find index %d %d \r\n", line_cur_index, line_cur_coords_size);
+                // printf("find index %d %d \r\n", line_cur_index, line_cur_coords_size);
             } else {
-                printf("readline check %d %d \r\n", line_cur_index, feature_count);
+                // printf("readline check %d %d \r\n", line_cur_index, feature_count);
                 if (line_cur_index <= feature_count) {
                     features[line_cur_index - 1].setGeometryLine(line, &mapMetadata);
-                    printf("readline %d \r\n", line_cur_index);
+                    // printf("readline %d \r\n", line_cur_index);
                 }
             }
         }
@@ -804,11 +804,15 @@ Layer* Layer::readFromZbFileArea() {
     bool find_area = false;
     int area_total_size = 0;
     int area_cur_index = 0;
+    int area_last_index = 0;
     // int area_end_index = 0;
     int area_cur_ring_count = 0;
+    int area_cur_ring_count_temp = 0;
     int area_cur_ring_number = 0;
     int area_cur_ring_index = -1;
     int area_cur_ring_coords_size = 0;
+    int area_cur_index_temp = 0;
+    int feature_count = features.size();
 
     stream.setCodec(QTextCodec::codecForName("gb2312"));
     while(!stream.atEnd()) {
@@ -822,8 +826,16 @@ Layer* Layer::readFromZbFileArea() {
                 find_area = true;
             }
         } else {
-            bool findnewarea = GeometryAreaRingCount(line, area_cur_index, area_cur_ring_count);
+            bool findnewarea = false;
+            GeometryAreaRingCount(line, area_cur_index_temp, area_cur_ring_count_temp);
+            if (area_cur_index_temp == area_last_index + 1) {
+                area_cur_index = area_cur_index_temp;
+                area_cur_ring_count = area_cur_ring_count_temp;
+                findnewarea = true;
+            }
+
             if (findnewarea) {
+                area_last_index = area_cur_index;
                 area_cur_ring_index = -1;
                 if (area_cur_ring_count == 0) {
                     // 1        0.000000        0.000000          0 不做任何处理
@@ -839,7 +851,7 @@ Layer* Layer::readFromZbFileArea() {
                     // printf("2. count area ring!  \r\n");
                     area_cur_ring_index++;
                 } else {
-                    if (area_cur_index <= features.size()) {
+                    if (area_cur_index <= feature_count) {
                         // printf("3. loop area ring point! %d \r\n", area_cur_index);
                         features[area_cur_index - 1].setGeometryArea(line, area_cur_ring_index, &mapMetadata);
                     }
@@ -906,8 +918,8 @@ void Layer::writeToPostgis(PGconn *conn) {
             feature.geometry.unprojection(&mapMetadata);
             QString sql = feature.toPostgis(uri, fields);
             // printf(QString::number(feature.type).toStdString().c_str());
-            printf(sql.toStdString().c_str());
-            printf("\r\n");
+            // printf(sql.toStdString().c_str());
+            // printf("\r\n");
             PGresult *res = PQexec(conn, sql.toStdString().c_str());
         } else {
 //            QString sql = feature.toPostgis(uri, fields);

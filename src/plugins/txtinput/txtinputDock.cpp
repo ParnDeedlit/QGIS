@@ -148,6 +148,9 @@ void txtinputDock::on_deleteButton_clicked() {
 void txtinputDock::on_executeButton_clicked() {
     PGconn *conn = tryConnectPostgis();
     int map_count = maps.size();
+    int layer_percent = 0;
+    int layer_step = 25;
+    int total_percent = 0;
     for (int index = 0; index < map_count; index++) {
         Map* map = maps[index];
         int count = map->groups.size();
@@ -157,35 +160,51 @@ void txtinputDock::on_executeButton_clicked() {
 
             if(filegroup->matadata.code.compare("280000") == 0) {
                 Layer *layer_anno = new Layer;
-//                layer_anno->setFileGroup(*filegroup)
-//                        ->setMapMetadata(map->metadata)
-//                        ->setLayerType(LayerType::Anno)
-//                        ->update()
-//                        ->excutePostgis(conn);
+                layer_anno->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Anno)
+                        ->update()
+                        ->excutePostgis(conn);
                 delete layer_anno;
+                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                layerProgressBar->setValue(layer_percent);
             } else {
                 Layer *layer_point = new Layer;
                 Layer *layer_line = new Layer;
                 Layer *layer_area = new Layer;
-//                layer_point->setFileGroup(*filegroup)
-//                        ->setMapMetadata(map->metadata)
-//                        ->setLayerType(LayerType::Point)
-//                        ->update()
-//                        ->excutePostgis(conn);
+                layer_point->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Point)
+                        ->update()
+                        ->excutePostgis(conn);
+
+                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                layerProgressBar->setValue(layer_percent);
+
                 layer_line->setFileGroup(*filegroup)
                         ->setMapMetadata(map->metadata)
                         ->setLayerType(LayerType::Line)
                         ->update()
                         ->excutePostgis(conn);
-//                layer_area->setFileGroup(*filegroup)
-//                        ->setMapMetadata(map->metadata)
-//                        ->setLayerType(LayerType::Area)
-//                        ->update()
-//                        ->excutePostgis(conn);
+
+                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                layerProgressBar->setValue(layer_percent);
+
+                layer_area->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Area)
+                        ->update()
+                        ->excutePostgis(conn);
+
+                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                layerProgressBar->setValue(layer_percent);
+
                 delete layer_point;
                 delete layer_line;
                 delete layer_area;
             }
         }
+        total_percent = 100 * (index + 1) / map_count;
+        totalProgressBar->setValue(total_percent);
     }
 }

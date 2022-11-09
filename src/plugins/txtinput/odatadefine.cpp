@@ -224,7 +224,7 @@ bool GeometryAreaRingCount(QString linestring, int &index, int &count) {
     QString indexstr;
     QString countstr;
     QString doubleReg = "(NULL|-?[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*|0?\\.0+|0)";
-    QString reg("\\s+(\\d+)\\s+" + doubleReg + "\\s+" + doubleReg + "\\s+(\\d+)\\s*");
+    QString reg("\\s*(\\d+)\\s+" + doubleReg + "\\s+" + doubleReg + "\\s+(\\d+)\\s*");
     QRegularExpression re_a(reg);
     QRegularExpressionMatch match_a = re_a.match(linestring);
     if(match_a.hasMatch()) {
@@ -240,7 +240,7 @@ bool GeometryAreaRingCount(QString linestring, int &index, int &count) {
 bool GeometryAreaCoordCount(QString linestring, int &count) {
     QString indexstr;
     QString countstr;
-    QString reg("\\s+(\\d+)\\s+");
+    QString reg("\\s*(\\d+)\\s*");
     QRegularExpression re_a(reg);
     QRegularExpressionMatch match_a = re_a.match(linestring);
     if(match_a.hasMatch()) {

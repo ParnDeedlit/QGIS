@@ -83,7 +83,7 @@
       m2 -
       (1.0 / 12) * (5 + 3 * t2 + u2 - 4 * u4 - 9 * u2 * t2) * m4 +
       (1.0 / 360) * (61 + 90 * t2 + 46 * u2 + 45 * t4 - 252 * t2 * u2) * m6;
-    double B = Bf - (1.0 / 2) * V * V * t * loopB;
+    double B = Bf - (1.0 / 2.0) * V * V * t * loopB;
 
     double loopL =
       m1 -
