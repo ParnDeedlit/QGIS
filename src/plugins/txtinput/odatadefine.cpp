@@ -207,7 +207,7 @@ int GeometryLineStringTypeCount(QString linestring, LayerType type) {
 bool GeometryLineCoordCount(QString linestring, int &index, int &count) {
     QString indexstr;
     QString countstr;
-    QString reg("\\s+(\\d+)\\s+(\\d+)\\s*");
+    QString reg("\\s*(\\d+)\\s+(\\d+)\\s*");
     QRegularExpression re_a(reg);
     QRegularExpressionMatch match_a = re_a.match(linestring);
     if(match_a.hasMatch()) {

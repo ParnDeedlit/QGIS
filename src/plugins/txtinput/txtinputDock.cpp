@@ -156,27 +156,27 @@ void txtinputDock::on_executeButton_clicked() {
             QString m = filegroup->matadata.layername;
 
             if(filegroup->matadata.code.compare("280000") == 0) {
-//                Layer *layer_anno = new Layer;
+                Layer *layer_anno = new Layer;
 //                layer_anno->setFileGroup(*filegroup)
 //                        ->setMapMetadata(map->metadata)
 //                        ->setLayerType(LayerType::Anno)
 //                        ->update()
 //                        ->excutePostgis(conn);
-//                delete layer_anno;
+                delete layer_anno;
             } else {
                 Layer *layer_point = new Layer;
                 Layer *layer_line = new Layer;
                 Layer *layer_area = new Layer;
-                layer_point->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Point)
-                        ->update()
-                        ->excutePostgis(conn);
-//                layer_line->setFileGroup(*filegroup)
+//                layer_point->setFileGroup(*filegroup)
 //                        ->setMapMetadata(map->metadata)
-//                        ->setLayerType(LayerType::Line)
+//                        ->setLayerType(LayerType::Point)
 //                        ->update()
 //                        ->excutePostgis(conn);
+                layer_line->setFileGroup(*filegroup)
+                        ->setMapMetadata(map->metadata)
+                        ->setLayerType(LayerType::Line)
+                        ->update()
+                        ->excutePostgis(conn);
 //                layer_area->setFileGroup(*filegroup)
 //                        ->setMapMetadata(map->metadata)
 //                        ->setLayerType(LayerType::Area)

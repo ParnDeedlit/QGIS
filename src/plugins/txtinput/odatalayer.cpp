@@ -512,7 +512,7 @@ Layer* Layer::readFromSxFilePoint() {
                 // 实际属性转换代码
                 ODataFeature feature;
                 feature.type = FeatureType::POINT;
-                feature.setProperties(line, fields, file_cur_index);
+                feature.setPropertiesSplit(line, fields, file_cur_index);
                 features.push_back(feature);
             } else {
                 // 无效行，包括属性文件前几行
@@ -562,7 +562,7 @@ Layer* Layer::readFromSxFileLine() {
             if (file_row_number > file_start_index && file_row_number <= file_end_index) {
                 // 实际属性转换代码
                 ODataFeature feature;
-                feature.setProperties(line, fields, file_cur_index);
+                feature.setPropertiesSplit(line, fields, file_cur_index);
                 features.push_back(feature);
             } else {
                 // 无效行，包括属性文件前几行
@@ -612,7 +612,7 @@ Layer* Layer::readFromSxFileArea() {
             if (file_row_number > file_start_index && file_row_number <= file_end_index) {
                 // 实际属性转换代码
                 ODataFeature feature;
-                feature.setProperties(line, fields, file_cur_index);
+                feature.setPropertiesSplit(line, fields, file_cur_index);
                 features.push_back(feature);
             } else {
                 // 无效行，包括属性文件前几行
@@ -658,7 +658,7 @@ Layer* Layer::readFromSxFileAnno() {
                 // 实际属性转换代码
                 ODataFeature feature;
                 feature.type = FeatureType::POINT;
-                feature.setProperties(line, fields, file_cur_index);
+                feature.setPropertiesSplit(line, fields, file_cur_index);
                 features.push_back(feature);
             } else {
                 // 无效行，包括属性文件前几行
@@ -746,9 +746,11 @@ Layer* Layer::readFromZbFileLine() {
     int file_row_number = 0;
     bool find_line = false;
     int line_total_size = 0;
+    int line_last_index = 0;
     int line_cur_index = 0;
-    // int line_end_index = 0;
     int line_cur_coords_size = 0;
+    int line_cur_index_temp = 0;
+    int feature_count = features.size();
 
     stream.setCodec(QTextCodec::codecForName("gb2312"));
     while(!stream.atEnd()) {
@@ -765,13 +767,21 @@ Layer* Layer::readFromZbFileLine() {
             // 结束 定位 "L 1000" 的结束位置
             break;
         } else {
-            bool findnewline = GeometryLineCoordCount(line, line_cur_index, line_cur_coords_size);
+            bool findnewline = false;
+            GeometryLineCoordCount(line, line_cur_index_temp, line_cur_coords_size);
+            if (line_cur_index_temp == line_last_index + 1) {
+                line_cur_index = line_cur_index_temp;
+                findnewline = true;
+            }
+
             if (findnewline) {
-                // line_cur_index++;
-                // line_end_index = file_row_number + qCeil(line_cur_coords_size / 6);
+                line_last_index = line_cur_index;
+                printf("find index %d %d \r\n", line_cur_index, line_cur_coords_size);
             } else {
-                if (line_cur_index <= features.size()) {
+                printf("readline check %d %d \r\n", line_cur_index, feature_count);
+                if (line_cur_index <= feature_count) {
                     features[line_cur_index - 1].setGeometryLine(line, &mapMetadata);
+                    printf("readline %d \r\n", line_cur_index);
                 }
             }
         }

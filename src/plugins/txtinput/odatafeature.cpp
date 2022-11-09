@@ -42,7 +42,66 @@ QString ODataFeature::toPostgis(QString tablename, vector<ODataAttributeMeta> fi
 }
 
 
-ODataFeature* ODataFeature::setProperties(QString linestring, vector<ODataAttributeMeta> fields, int validIndex) {
+ODataFeature* ODataFeature::setPropertiesSplit(QString linestring, vector<ODataAttributeMeta> fields, int validIndex) {
+    QString str;
+    QString reg("\\s+");
+    int first_index = 1;
+    QRegularExpression re_a(reg);
+    QStringList lists = linestring.split(re_a);
+    int fieldcount = fields.size();
+    int listcount = lists.size();
+
+    bool hasValid = false;
+    for (int i = 0; i < listcount; i++) {
+        QRegularExpressionMatch match_a = re_a.match(lists[i]);
+//        printf("propers reg  %d %s\r\n", i, lists[i].toStdString().c_str());
+        if(match_a.hasMatch() || lists[i].compare("") == 0) {
+//            printf("propers reg  match %d %c \r\n", i, lists[i].toStdString().c_str());
+            if (!hasValid) {
+                first_index++;
+            } else {
+                break;
+            }
+        } else {
+            hasValid = true;
+            break;
+        }
+    }
+//    printf("propers offset  %d \r\n", first_index);
+
+//    for (int i = 0; i < listcount; i++) {
+//        printf("propers reg  %d %s\r\n", i, lists[i].toStdString().c_str());
+//    }
+
+    if (listcount < fieldcount) {
+        return this;
+    }
+    for (int i = 0; i < fieldcount; i++) {
+        str = lists[i + first_index];
+        ODataAttributeMeta meta = fields[i];
+        if (meta.fieldtype == "string") {
+            ODataAttribute attr;
+            attr.type = "string";
+            attr.value = str;
+            properties.push_back(attr);
+        } else if (meta.fieldtype == "int") {
+            ODataAttribute attr;
+            attr.type = "int";
+            attr.value = str.toInt();
+            properties.push_back(attr);
+        } else if (meta.fieldtype == "double") {
+            ODataAttribute attr;
+            attr.type = "double";
+            attr.value = str.toDouble();
+            properties.push_back(attr);
+        }
+        // printf("%d %s  \r\n", i, str.toStdString().c_str());
+    }
+
+    return this;
+}
+
+ODataFeature* ODataFeature::setPropertiesReg(QString linestring, vector<ODataAttributeMeta> fields, int validIndex) {
     QString str;
     const int first_index = 2;
     QString reg("\\s*(\\d+)");
@@ -86,9 +145,6 @@ ODataFeature* ODataFeature::setProperties(QString linestring, vector<ODataAttrib
                     ODataAttribute attr;
                     attr.type = "int";
                     attr.value = str.toInt();
-                    if (i == 0) {
-                        printf("attr %d %s %s\r\n", str.toInt(), reg.toStdString().c_str(), linestring.toStdString().c_str());
-                    }
                     properties.push_back(attr);
                 } else if (meta.fieldtype == "double") {
                     ODataAttribute attr;
