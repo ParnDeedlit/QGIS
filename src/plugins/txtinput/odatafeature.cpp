@@ -186,12 +186,14 @@ ODataFeature* ODataFeature::setGeometryPoint(QString linestring, int validIndex,
         if(index.toInt() == validIndex) {
             strx = match_a.captured(0 + first_index);
             stry = match_a.captured(1 + first_index);
-            strx1 = match_a.captured(2 + first_index);
-            stry1 = match_a.captured(3 + first_index);
             geometry.point.coordinates.x = strx.toDouble();
             geometry.point.coordinates.y = stry.toDouble();
-            geometry.point.auxiliary.x = strx1.toDouble();
-            geometry.point.auxiliary.y = stry1.toDouble();
+            if (match_a.capturedLength() >= 5) {
+                strx1 = match_a.captured(2 + first_index);
+                stry1 = match_a.captured(3 + first_index);
+                geometry.point.auxiliary.x = strx1.toDouble();
+                geometry.point.auxiliary.y = stry1.toDouble();
+            }
             // printf("x %f,  y %f \r\n", strx.toDouble() ,stry.toDouble());
         } else {
             isValid = false;

@@ -72,52 +72,86 @@ std::vector<QString> CODES = {
     "280000",
 };
 
-ODATA* ODATA::instance = nullptr;
-std::vector<File> * ODATA::metadata = nullptr;
+std::vector<QString> NEW_NAMES = {
+    "定位基础",
+    "水系",
+    "居民地及设施",
+    "交通",
+    "管线",
+    "境界与政区",
+    "地貌",
+    "植被与土质",
+    "海底地貌及底质",
+    "航海障碍物",
+    "海上区域界线",
+    "助航设备及航道",
+    "海洋水文",
+    "航空",
+    "地球物理场",
+    "军事专用",
+    "名称",
+    "土体",
+    "岩体",
+    "地质构造",
+    "地下水",
+    "地质灾害及隐患",
+    "矿产资源",
+    "图外信息"
+};
 
-ODATA* ODATA::getInstance() {
-    if (instance == nullptr) {
-        instance = new ODATA();
-        metadata = new std::vector<File>;
-        initMetaData();
-    }
-    return instance;
-}
+std::vector<QString> NEW_SHORTNAMES = {
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y"
+};
 
-void ODATA::initMetaData() {
-   int count = NAMES.size();
-   for (int i = 0; i < count; i++) {
-       if (count == count - 1) {
-           File anno_point;
-           anno_point.name = SHORTNAMES[i] + "_" + NAMES[i] + "_" + CODES[i] + "_P";
-           anno_point.code = CODES[i];
-           anno_point.layername = SHORTNAMES[i];
-
-           metadata->push_back(anno_point);
-       } else {
-           File layer_point;
-           layer_point.name = SHORTNAMES[i] + "_" + NAMES[i] + "_" + CODES[i] + "_P";
-           layer_point.code = CODES[i];
-           layer_point.layername = SHORTNAMES[i];
-           File layer_line;
-           layer_point.name = SHORTNAMES[i] + "_" + NAMES[i] + "_" + CODES[i] + "_L";
-           layer_point.code = CODES[i];
-           layer_point.layername = SHORTNAMES[i];
-           File layer_area;
-           layer_point.name = SHORTNAMES[i] + "_" + NAMES[i] + "_" + CODES[i] + "_A";
-           layer_point.code = CODES[i];
-           layer_point.layername = SHORTNAMES[i];
-
-           metadata->push_back(layer_point);
-           metadata->push_back(layer_point);
-           metadata->push_back(layer_point);
-       }
-   }
-}
-
-std::vector<File>* ODATA::getMetaData() {
-    return metadata;
-}
+std::vector<QString> NEW_CODES = {
+    "11000000",
+    "12000000",
+    "13000000",
+    "14000000",
+    "15000000",
+    "16000000",
+    "17000000",
+    "18000000",
+    "19000000",
+    "20000000",
+    "21000000",
+    "22000000",
+    "23000000",
+    "24000000",
+    "25000000",
+    "26000000",
+    "27000000",
+    "41000000",
+    "42000000",
+    "43000000",
+    "44000000",
+    "45000000",
+    "46000000",
+    "90000000",
+};
 
 Map* ODATA::initMap(QFileInfoList list) {
     Map *map = new Map;
@@ -151,7 +185,7 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
         QString suffix = list[i].suffix();
         if (suffix.compare("SMS") == 0) {
         } else {
-        //if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("C") == 0) {
+        if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("C") == 0) {
             File layer;
             layer.name = list[i].baseName();
             layer.layername = suffix.mid(0, 1).toUpper();
@@ -186,7 +220,7 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
                 }
                 groupMap.emplace(layer.layername, group);
             }
-        //}
+        }
         }
     }
 
@@ -198,22 +232,42 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
 }
 
 QString ODATA::getCodeByShortName(QString shortname) {
-    int length = SHORTNAMES.size();
-    for(int i = 0; i < length; i++) {
-        if (SHORTNAMES[i].toUpper().compare(shortname.toUpper()) == 0) {
-            return CODES[i];
+    if (version == OdataVersion::ODATA_1_0) {
+        int length = SHORTNAMES.size();
+        for(int i = 0; i < length; i++) {
+            if (SHORTNAMES[i].toUpper().compare(shortname.toUpper()) == 0) {
+                return CODES[i];
+            }
+        }
+    } else if (version == OdataVersion::ODATA_2_0 || OdataVersion::ENTITY_1_0) {
+        int length = NEW_SHORTNAMES.size();
+        for(int i = 0; i < length; i++) {
+            if (NEW_SHORTNAMES[i].toUpper().compare(shortname.toUpper()) == 0) {
+                return NEW_CODES[i];
+            }
         }
     }
+
     return "999999";
 }
 
 QString ODATA::getCnnameByShortName(QString shortname) {
-    int length = SHORTNAMES.size();
-    for(int i = 0; i < length; i++) {
-        if (SHORTNAMES[i].toUpper().compare(shortname.toUpper()) == 0) {
-            return NAMES[i];
+    if (version == OdataVersion::ODATA_1_0) {
+        int length = SHORTNAMES.size();
+        for(int i = 0; i < length; i++) {
+            if (SHORTNAMES[i].toUpper().compare(shortname.toUpper()) == 0) {
+                return NAMES[i];
+            }
+        }
+    } else if (version == OdataVersion::ODATA_2_0 || OdataVersion::ENTITY_1_0) {
+        int length = NEW_SHORTNAMES.size();
+        for(int i = 0; i < length; i++) {
+            if (NEW_SHORTNAMES[i].toUpper().compare(shortname.toUpper()) == 0) {
+                return NEW_NAMES[i];
+            }
         }
     }
+
     return "999999";
 }
 

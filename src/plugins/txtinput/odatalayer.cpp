@@ -301,6 +301,565 @@ vector<ODataAttributeMeta> FIELDS_R = {
     ODataAttributeMeta(QString("颜色"), QString("string"), 20)
 };
 
+vector<ODataAttributeMeta> NEW_FIELDS_A = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("等级"), QString("string"), 12),
+ODataAttributeMeta(QString("高程"), QString("double"), 10),
+ODataAttributeMeta(QString("大地高"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("状态"), QString("string"), 12),
+ODataAttributeMeta(QString("重力值"), QString("double"), 15),
+ODataAttributeMeta(QString("理论横坐标"), QString("double"), 12),
+ODataAttributeMeta(QString("理论纵坐标"), QString("double"), 12),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_B = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("其他名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("水质"), QString("string"), 20),
+ODataAttributeMeta(QString("时令月份"), QString("string"), 20),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("水深"), QString("double"), 10),
+ODataAttributeMeta(QString("泥深"), QString("double"), 10),
+ODataAttributeMeta(QString("井深"), QString("double"), 10),
+ODataAttributeMeta(QString("长度"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("高程"), QString("double"), 10),
+ODataAttributeMeta(QString("库容量"), QString("double"), 10),
+ODataAttributeMeta(QString("通航吨数"), QString("int"), 12),
+ODataAttributeMeta(QString("通航性质"), QString("string"), 8),
+ODataAttributeMeta(QString("水系名称代码"), QString("string"), 20),
+ODataAttributeMeta(QString("水系主体代码"), QString("string"), 20),
+ODataAttributeMeta(QString("水利行业编码"), QString("string"), 20),
+ODataAttributeMeta(QString("共享河段"), QString("string"), 255),
+ODataAttributeMeta(QString("植被类型"), QString("string"), 30),
+ODataAttributeMeta(QString("表面物质"), QString("string"), 30),
+ODataAttributeMeta(QString("存在状态"), QString("string"), 10),
+ODataAttributeMeta(QString("位置质量"), QString("string"), 20),
+ODataAttributeMeta(QString("颜色"), QString("string"), 20),
+ODataAttributeMeta(QString("与水面关系"), QString("string"), 10),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_C = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("性质"), QString("string"), 20),
+ODataAttributeMeta(QString("使用月份"), QString("string"), 20),
+ODataAttributeMeta(QString("几何形态"), QString("string"), 20),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("深度"), QString("double"), 10),
+ODataAttributeMeta(QString("人口数"), QString("double"), 10),
+ODataAttributeMeta(QString("行政区划代码"), QString("string"), 20),
+ODataAttributeMeta(QString("状态"), QString("string"), 12),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_D = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("编号"), QString("string"), 20),
+ODataAttributeMeta(QString("技术等级"), QString("string"), 20),
+ODataAttributeMeta(QString("铺设材料"), QString("string"), 20),
+ODataAttributeMeta(QString("车道数"), QString("int"), 8),
+ODataAttributeMeta(QString("单双行线"), QString("string"), 20),
+ODataAttributeMeta(QString("通行月份"), QString("string"), 20),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("铺面宽"), QString("double"), 10),
+ODataAttributeMeta(QString("道路行政归属"), QString("string"), 40),
+ODataAttributeMeta(QString("最小曲率半径"), QString("double"), 10),
+ODataAttributeMeta(QString("最大纵坡"), QString("double"), 10),
+ODataAttributeMeta(QString("载重"), QString("double"), 10),
+ODataAttributeMeta(QString("层数"), QString("int"), 8),
+ODataAttributeMeta(QString("长度"), QString("double"), 10),
+ODataAttributeMeta(QString("净空高"), QString("double"), 10),
+ODataAttributeMeta(QString("里程"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("水深"), QString("double"), 10),
+ODataAttributeMeta(QString("河底性质"), QString("string"), 20),
+ODataAttributeMeta(QString("状态"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_E = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("电压值"), QString("string"), 20),
+ODataAttributeMeta(QString("净空高"), QString("double"), 10),
+ODataAttributeMeta(QString("埋藏深度"), QString("double"), 10),
+ODataAttributeMeta(QString("存在状态"), QString("string"), 10),
+ODataAttributeMeta(QString("作用方式"), QString("string"), 20),
+ODataAttributeMeta(QString("限制种类"), QString("string"), 40),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_F = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("行政区划代码"), QString("string"), 20),
+ODataAttributeMeta(QString("界碑编号"), QString("string"), 40),
+ODataAttributeMeta(QString("点号"), QString("string"), 20),
+ODataAttributeMeta(QString("高程"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("保护区级别"), QString("string"), 6),
+ODataAttributeMeta(QString("人口数"), QString("double"), 10),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_G = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("类别"), QString("string"), 20),
+ODataAttributeMeta(QString("高程"), QString("double"), 10),
+ODataAttributeMeta(QString("比高值"), QString("double"), 10),
+ODataAttributeMeta(QString("沟宽"), QString("double"), 10),
+ODataAttributeMeta(QString("方向"), QString("double"), 15),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_H = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("高度"), QString("double"), 10),
+ODataAttributeMeta(QString("胸径"), QString("double"), 10),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("状态"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_I = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("水深值"), QString("double"), 10),
+ODataAttributeMeta(QString("水深值1"), QString("double"), 10),
+ODataAttributeMeta(QString("水深值2"), QString("double"), 10),
+ODataAttributeMeta(QString("测深技术"), QString("string"), 40),
+ODataAttributeMeta(QString("测深质量"), QString("string"), 40),
+ODataAttributeMeta(QString("位置质量"), QString("string"), 20),
+ODataAttributeMeta(QString("颜色"), QString("string"), 20),
+ODataAttributeMeta(QString("与周围水深的关系"), QString("string"), 20),
+ODataAttributeMeta(QString("作用方式"), QString("string"), 20),
+ODataAttributeMeta(QString("表面物质"), QString("string"), 30),
+ODataAttributeMeta(QString("物质形态"), QString("string"), 30),
+ODataAttributeMeta(QString("危险级"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_J = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("水深值"), QString("double"), 10),
+ODataAttributeMeta(QString("高度"), QString("double"), 10),
+ODataAttributeMeta(QString("垂高"), QString("double"), 10),
+ODataAttributeMeta(QString("存在状态"), QString("string"), 10),
+ODataAttributeMeta(QString("测深技术"), QString("string"), 40),
+ODataAttributeMeta(QString("测深质量"), QString("string"), 40),
+ODataAttributeMeta(QString("位置质量"), QString("string"), 20),
+ODataAttributeMeta(QString("限制种类"), QString("string"), 40),
+ODataAttributeMeta(QString("区域界线类型"), QString("string"), 40),
+ODataAttributeMeta(QString("作用方式"), QString("string"), 20),
+ODataAttributeMeta(QString("表面物质"), QString("string"), 30),
+ODataAttributeMeta(QString("与水面关系"), QString("string"), 10),
+ODataAttributeMeta(QString("危险级"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_K = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("国家代码"), QString("string"), 20),
+ODataAttributeMeta(QString("编号"), QString("string"), 20),
+ODataAttributeMeta(QString("限制种类"), QString("string"), 40),
+ODataAttributeMeta(QString("存在状态"), QString("string"), 10),
+ODataAttributeMeta(QString("雷达可视"), QString("int"), 8),
+ODataAttributeMeta(QString("半径"), QString("double"), 10),
+ODataAttributeMeta(QString("高度"), QString("double"), 10),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_L = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("性质"), QString("string"), 60),
+ODataAttributeMeta(QString("编号"), QString("string"), 20),
+ODataAttributeMeta(QString("颜色"), QString("string"), 20),
+ODataAttributeMeta(QString("色彩图案"), QString("string"), 20),
+ODataAttributeMeta(QString("顶标颜色"), QString("string"), 20),
+ODataAttributeMeta(QString("发光状态"), QString("string"), 20),
+ODataAttributeMeta(QString("高度"), QString("double"), 10),
+ODataAttributeMeta(QString("灯光特性"), QString("string"), 20),
+ODataAttributeMeta(QString("岸别"), QString("string"), 20),
+ODataAttributeMeta(QString("信号组"), QString("string"), 20),
+ODataAttributeMeta(QString("信号周期"), QString("double"), 10),
+ODataAttributeMeta(QString("作用距离"), QString("double"), 10),
+ODataAttributeMeta(QString("灯光可视"), QString("string"), 20),
+ODataAttributeMeta(QString("方位"), QString("double"), 15),
+ODataAttributeMeta(QString("航行指向"), QString("double"), 15),
+ODataAttributeMeta(QString("光弧角度1"), QString("double"), 15),
+ODataAttributeMeta(QString("光弧角度2"), QString("double"), 15),
+ODataAttributeMeta(QString("雷达可视"), QString("int"), 8),
+ODataAttributeMeta(QString("视觉可见"), QString("string"), 20),
+ODataAttributeMeta(QString("限制种类"), QString("string"), 20),
+ODataAttributeMeta(QString("水深值1"), QString("double"), 10),
+ODataAttributeMeta(QString("作用方式"), QString("string"), 20),
+ODataAttributeMeta(QString("浮标系统"), QString("string"), 8),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_M = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("深度"), QString("double"), 10),
+ODataAttributeMeta(QString("底质"), QString("string"), 20),
+ODataAttributeMeta(QString("流速"), QString("double"), 10),
+ODataAttributeMeta(QString("方位"), QString("double"), 15),
+ODataAttributeMeta(QString("高程"), QString("double"), 10),
+ODataAttributeMeta(QString("月份"), QString("int"), 8),
+ODataAttributeMeta(QString("描述"), QString("int"), 12),
+ODataAttributeMeta(QString("潮汐潮位精度"), QString("string"), 20),
+ODataAttributeMeta(QString("潮汐预报方法"), QString("string"), 20),
+ODataAttributeMeta(QString("分道通航制类"), QString("string"), 20),
+ODataAttributeMeta(QString("推荐航线类"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_N = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("代码"), QString("string"), 40),
+ODataAttributeMeta(QString("编号"), QString("string"), 20),
+ODataAttributeMeta(QString("跑道数"), QString("int"), 8),
+ODataAttributeMeta(QString("跑道磁方向"), QString("double"), 15),
+ODataAttributeMeta(QString("频率"), QString("double"), 15),
+ODataAttributeMeta(QString("长度"), QString("double"), 15),
+ODataAttributeMeta(QString("高程"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("限制高度"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_O = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("磁力值"), QString("double"), 12),
+ODataAttributeMeta(QString("磁差值"), QString("double"), 15),
+ODataAttributeMeta(QString("参考年"), QString("int"), 8),
+ODataAttributeMeta(QString("年变值"), QString("double"), 15),
+ODataAttributeMeta(QString("重力值"), QString("double"), 15),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_P = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("目标所在国家地区"), QString("string"), 128),
+ODataAttributeMeta(QString("目标所属国家地区"), QString("string"), 128),
+ODataAttributeMeta(QString("目标概况"), QString("string"), 1024),
+ODataAttributeMeta(QString("子目标名称"), QString("string"), 128),
+ODataAttributeMeta(QString("子目标编码"), QString("string"), 128),
+ODataAttributeMeta(QString("子目标类型"), QString("string"), 32),
+ODataAttributeMeta(QString("定点类型"), QString("string"), 32),
+ODataAttributeMeta(QString("结构材质"), QString("string"), 64),
+ODataAttributeMeta(QString("子目标说明"), QString("string"), 1024),
+ODataAttributeMeta(QString("子目标地址"), QString("string"), 256),
+ODataAttributeMeta(QString("长度"), QString("double"), 10),
+ODataAttributeMeta(QString("宽度"), QString("double"), 10),
+ODataAttributeMeta(QString("比高"), QString("double"), 10),
+ODataAttributeMeta(QString("直径"), QString("double"), 10),
+ODataAttributeMeta(QString("面积"), QString("double"), 10),
+ODataAttributeMeta(QString("形状"), QString("string"), 256),
+ODataAttributeMeta(QString("大地高"), QString("double"), 10),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("限制种类"), QString("string"), 40),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("角度"), QString("double"), 15),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_Q = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("中文名称"), QString("string"), 100),
+ODataAttributeMeta(QString("汉语拼音"), QString("string"), 100),
+ODataAttributeMeta(QString("中文副名"), QString("string"), 100),
+ODataAttributeMeta(QString("简称"), QString("string"), 100),
+ODataAttributeMeta(QString("别名"), QString("string"), 100),
+ODataAttributeMeta(QString("外文名称"), QString("string"), 100),
+ODataAttributeMeta(QString("外文语种"), QString("string"), 100),
+ODataAttributeMeta(QString("罗马化转写名称"), QString("string"), 100),
+ODataAttributeMeta(QString("名称编码"), QString("string"), 255),
+ODataAttributeMeta(QString("行政区划代码"), QString("string"), 30),
+ODataAttributeMeta(QString("使用状态"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称唯一标识码"), QString("string"), 100),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_R = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 60),
+ODataAttributeMeta(QString("成因类型"), QString("string"), 60),
+ODataAttributeMeta(QString("状态"), QString("string"), 60),
+ODataAttributeMeta(QString("密实度"), QString("string"), 20),
+ODataAttributeMeta(QString("坚硬程度"), QString("string"), 20),
+ODataAttributeMeta(QString("承载力"), QString("string"), 20),
+ODataAttributeMeta(QString("厚度"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_S = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("坚硬程度"), QString("string"), 60),
+ODataAttributeMeta(QString("完整程度"), QString("string"), 60),
+ODataAttributeMeta(QString("质量等级"), QString("string"), 20),
+ODataAttributeMeta(QString("承载力"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_T = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("位置"), QString("string"), 60),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("稳定性"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_U = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("位置"), QString("string"), 60),
+ODataAttributeMeta(QString("水位埋深"), QString("double"), 6),
+ODataAttributeMeta(QString("含水层厚度"), QString("double"), 5),
+ODataAttributeMeta(QString("埋藏条件"), QString("string"), 10),
+ODataAttributeMeta(QString("水质"), QString("string"), 20),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_V = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("位置"), QString("string"), 60),
+ODataAttributeMeta(QString("类型"), QString("string"), 20),
+ODataAttributeMeta(QString("规模"), QString("string"), 20),
+ODataAttributeMeta(QString("汇水面积"), QString("double"), 8),
+ODataAttributeMeta(QString("相对高差"), QString("double"), 6),
+ODataAttributeMeta(QString("稳定程度"), QString("string"), 60),
+ODataAttributeMeta(QString("诱发因素"), QString("string"), 100),
+ODataAttributeMeta(QString("易发程度"), QString("string"), 60),
+ODataAttributeMeta(QString("破坏程度"), QString("string"), 60),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_W = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("名称"), QString("string"), 255),
+ODataAttributeMeta(QString("位置"), QString("string"), 60),
+ODataAttributeMeta(QString("分类"), QString("string"), 60),
+ODataAttributeMeta(QString("规模"), QString("string"), 60),
+ODataAttributeMeta(QString("开采利用情况"), QString("string"), 60),
+ODataAttributeMeta(QString("资源量"), QString("double"), 11),
+ODataAttributeMeta(QString("开采量"), QString("double"), 11),
+ODataAttributeMeta(QString("矿种元素"), QString("string"), 10),
+ODataAttributeMeta(QString("矿种名称"), QString("string"), 10),
+ODataAttributeMeta(QString("现势性"), QString("string"), 6),
+ODataAttributeMeta(QString("名称指针"), QString("int"), 12),
+ODataAttributeMeta(QString("外挂表名称"), QString("string"), 30),
+ODataAttributeMeta(QString("要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("上一级要素唯一编码"), QString("string"), 75),
+ODataAttributeMeta(QString("网格码"), QString("string"), 30),
+ODataAttributeMeta(QString("更新状态标识"), QString("string"), 6),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+vector<ODataAttributeMeta> NEW_FIELDS_Y = {
+ODataAttributeMeta(QString("分类编码"), QString("int"), 10),
+ODataAttributeMeta(QString("信息"), QString("string"), 100),
+ODataAttributeMeta(QString("版本标识"), QString("string"), 6),
+ODataAttributeMeta(QString("备注"), QString("string"), 60)
+};
+
 Layer* Layer::update() {
     parseUrl();
     parseField();
@@ -309,44 +868,99 @@ Layer* Layer::update() {
 
 Layer* Layer::parseField() {
     File meta = filegroup.matadata;
+
     QString shortname = meta.layername;
-    if (shortname.compare("A") == 0) {
-        fields = FIELDS_A;
-    } else if (shortname.compare("B") == 0) {
-        fields = FIELDS_B;
-    } else if (shortname.compare("C") == 0) {
-        fields = FIELDS_C;
-    } else if (shortname.compare("D") == 0) {
-        fields = FIELDS_D;
-    } else if (shortname.compare("E") == 0) {
-        fields = FIELDS_E;
-    } else if (shortname.compare("F") == 0) {
-        fields = FIELDS_F;
-    } else if (shortname.compare("G") == 0) {
-        fields = FIELDS_G;
-    } else if (shortname.compare("H") == 0) {
-        fields = FIELDS_H;
-    } else if (shortname.compare("I") == 0) {
-        fields = FIELDS_I;
-    } else if (shortname.compare("J") == 0) {
-        fields = FIELDS_J;
-    } else if (shortname.compare("K") == 0) {
-        fields = FIELDS_K;
-    } else if (shortname.compare("L") == 0) {
-        fields = FIELDS_L;
-    } else if (shortname.compare("M") == 0) {
-        fields = FIELDS_M;
-    } else if (shortname.compare("N") == 0) {
-        fields = FIELDS_N;
-    } else if (shortname.compare("O") == 0) {
-        fields = FIELDS_O;
-    } else if (shortname.compare("P") == 0) {
-        fields = FIELDS_P;
-    } else if (shortname.compare("Q") == 0) {
-        fields = FIELDS_Q;
-    } else if (shortname.compare("R") == 0) {
-        fields = FIELDS_R;
+    if (mapMetadata.version == OdataVersion::ODATA_1_0) {
+        if (shortname.compare("A") == 0) {
+            fields = FIELDS_A;
+        } else if (shortname.compare("B") == 0) {
+            fields = FIELDS_B;
+        } else if (shortname.compare("C") == 0) {
+            fields = FIELDS_C;
+        } else if (shortname.compare("D") == 0) {
+            fields = FIELDS_D;
+        } else if (shortname.compare("E") == 0) {
+            fields = FIELDS_E;
+        } else if (shortname.compare("F") == 0) {
+            fields = FIELDS_F;
+        } else if (shortname.compare("G") == 0) {
+            fields = FIELDS_G;
+        } else if (shortname.compare("H") == 0) {
+            fields = FIELDS_H;
+        } else if (shortname.compare("I") == 0) {
+            fields = FIELDS_I;
+        } else if (shortname.compare("J") == 0) {
+            fields = FIELDS_J;
+        } else if (shortname.compare("K") == 0) {
+            fields = FIELDS_K;
+        } else if (shortname.compare("L") == 0) {
+            fields = FIELDS_L;
+        } else if (shortname.compare("M") == 0) {
+            fields = FIELDS_M;
+        } else if (shortname.compare("N") == 0) {
+            fields = FIELDS_N;
+        } else if (shortname.compare("O") == 0) {
+            fields = FIELDS_O;
+        } else if (shortname.compare("P") == 0) {
+            fields = FIELDS_P;
+        } else if (shortname.compare("Q") == 0) {
+            fields = FIELDS_Q;
+        } else if (shortname.compare("R") == 0) {
+            fields = FIELDS_R;
+        }
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0
+        || mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        if (shortname.compare("A") == 0) {
+            fields = NEW_FIELDS_A;
+        } else if (shortname.compare("B") == 0) {
+            fields = NEW_FIELDS_B;
+        } else if (shortname.compare("C") == 0) {
+            fields = NEW_FIELDS_C;
+        } else if (shortname.compare("D") == 0) {
+            fields = NEW_FIELDS_D;
+        } else if (shortname.compare("E") == 0) {
+            fields = NEW_FIELDS_E;
+        } else if (shortname.compare("F") == 0) {
+            fields = NEW_FIELDS_F;
+        } else if (shortname.compare("G") == 0) {
+            fields = NEW_FIELDS_G;
+        } else if (shortname.compare("H") == 0) {
+            fields = NEW_FIELDS_H;
+        } else if (shortname.compare("I") == 0) {
+            fields = NEW_FIELDS_I;
+        } else if (shortname.compare("J") == 0) {
+            fields = NEW_FIELDS_J;
+        } else if (shortname.compare("K") == 0) {
+            fields = NEW_FIELDS_K;
+        } else if (shortname.compare("L") == 0) {
+            fields = NEW_FIELDS_L;
+        } else if (shortname.compare("M") == 0) {
+            fields = NEW_FIELDS_M;
+        } else if (shortname.compare("N") == 0) {
+            fields = NEW_FIELDS_N;
+        } else if (shortname.compare("O") == 0) {
+            fields = NEW_FIELDS_O;
+        } else if (shortname.compare("P") == 0) {
+            fields = NEW_FIELDS_P;
+        } else if (shortname.compare("Q") == 0) {
+            fields = NEW_FIELDS_Q;
+        } else if (shortname.compare("R") == 0) {
+            fields = NEW_FIELDS_R;
+        } else if (shortname.compare("S") == 0) {
+            fields = NEW_FIELDS_S;
+        } else if (shortname.compare("T") == 0) {
+            fields = NEW_FIELDS_T;
+        } else if (shortname.compare("U") == 0) {
+            fields = NEW_FIELDS_U;
+        } else if (shortname.compare("V") == 0) {
+            fields = NEW_FIELDS_V;
+        } else if (shortname.compare("W") == 0) {
+            fields = NEW_FIELDS_W;
+        } else if (shortname.compare("Y") == 0) {
+            fields = NEW_FIELDS_Y;
+        }
     }
+
     return this;
 }
 

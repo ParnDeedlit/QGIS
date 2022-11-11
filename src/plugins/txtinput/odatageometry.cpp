@@ -22,27 +22,33 @@ QString ODataPoint::toWKT() {
 }
 
 void ODataPoint::unprojtion(MapMataData *mata) {
-    if (mata->projType == ProjType::Equal_Angle_Cone && mata->projUnit == ProjUnit::Second) {
-        coordinates.x = mata->origin_x + coordinates.x / 3600;
-        coordinates.y = mata->origin_y + coordinates.y / 3600;
-        auxiliary.x = mata->origin_x + auxiliary.x / 3600;
-        auxiliary.y = mata->origin_y + auxiliary.y / 3600;
-    } else if (mata->projType == ProjType::Gauss) {
-        Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
-        GaussProjection gauss;
-        gauss.ellipsoid = xian80;
-        gauss.falseEasting = mata->gauss_number * 1000000 + 500000.0;
-        gauss.falseNorthing = 0.0;
-        gauss.latitudeOfNaturalOrigin = 0.0;
-        gauss.longitudeOfNaturalOrigin = mata->lon_0;
-        coordinates.x += mata->origin_x;
-        coordinates.y += mata->origin_y;
-        auxiliary.x += mata->origin_x;
-        auxiliary.y += mata->origin_y;
-        PlaneCoordinate plane = PlaneCoordinate(coordinates.x, coordinates.y);
-        GeodeticCoordinate coord = gauss.inverse(plane);
-        coordinates.x = coord.lng;
-        coordinates.y = coord.lat;
+    if (mata->version == OdataVersion::ODATA_1_0) {
+        if (mata->projType == ProjType::Equal_Angle_Cone && mata->projUnit == ProjUnit::Second) {
+            coordinates.x = mata->origin_x + coordinates.x / 3600;
+            coordinates.y = mata->origin_y + coordinates.y / 3600;
+            auxiliary.x = mata->origin_x + auxiliary.x / 3600;
+            auxiliary.y = mata->origin_y + auxiliary.y / 3600;
+        } else if (mata->projType == ProjType::Gauss) {
+            Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
+            GaussProjection gauss;
+            gauss.ellipsoid = xian80;
+            gauss.falseEasting = mata->gauss_number * 1000000 + 500000.0;
+            gauss.falseNorthing = 0.0;
+            gauss.latitudeOfNaturalOrigin = 0.0;
+            gauss.longitudeOfNaturalOrigin = mata->lon_0;
+            coordinates.x += mata->origin_x;
+            coordinates.y += mata->origin_y;
+            auxiliary.x += mata->origin_x;
+            auxiliary.y += mata->origin_y;
+            PlaneCoordinate plane = PlaneCoordinate(coordinates.x, coordinates.y);
+            GeodeticCoordinate coord = gauss.inverse(plane);
+            coordinates.x = coord.lng;
+            coordinates.y = coord.lat;
+        }
+    } else if (mata->version == OdataVersion::ODATA_2_0) {
+
+    } else if (mata->version == OdataVersion::ENTITY_1_0) {
+
     }
 }
 
@@ -75,30 +81,36 @@ QString ODataLine::toWKT() {
 }
 
 void ODataLine::unprojtion(MapMataData *mata) {
-    if (mata->projType == ProjType::Equal_Angle_Cone && mata->projUnit == ProjUnit::Second) {
-        int count = coordinates.size();
-        for (int i = 0; i < count; i++) {
-            coordinates[i].x = mata->origin_x + (double)(coordinates[i].x / 3600);
-            coordinates[i].y = mata->origin_y + (double)(coordinates[i].y / 3600);
+    if (mata->version == OdataVersion::ODATA_1_0) {
+        if (mata->projType == ProjType::Equal_Angle_Cone && mata->projUnit == ProjUnit::Second) {
+            int count = coordinates.size();
+            for (int i = 0; i < count; i++) {
+                coordinates[i].x = mata->origin_x + (double)(coordinates[i].x / 3600);
+                coordinates[i].y = mata->origin_y + (double)(coordinates[i].y / 3600);
+            }
+        } else if (mata->projType == ProjType::Gauss) {
+            Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
+            GaussProjection gauss;
+            gauss.ellipsoid = xian80;
+            gauss.falseEasting = mata->gauss_number * 1000000 + 500000.0;
+            gauss.falseNorthing = 0.0;
+            gauss.latitudeOfNaturalOrigin = 0.0;
+            gauss.longitudeOfNaturalOrigin = mata->lon_0;
+            int count = coordinates.size();
+            for (int i = 0; i < count; i++) {
+                coordinates[i].x += mata->origin_x;
+                coordinates[i].y += mata->origin_y;
+                PlaneCoordinate plane = PlaneCoordinate(coordinates[i].x, coordinates[i].y);
+                GeodeticCoordinate coord = gauss.inverse(plane);
+                // printf("lng lat x y  %f %f %f %f \r\n", coord.lng * 1000000, coord.lat * 1000000, plane.x, plane.y);
+                coordinates[i].x  = coord.lng;
+                coordinates[i].y= coord.lat;
+            }
         }
-    } else if (mata->projType == ProjType::Gauss) {
-        Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
-        GaussProjection gauss;
-        gauss.ellipsoid = xian80;
-        gauss.falseEasting = mata->gauss_number * 1000000 + 500000.0;
-        gauss.falseNorthing = 0.0;
-        gauss.latitudeOfNaturalOrigin = 0.0;
-        gauss.longitudeOfNaturalOrigin = mata->lon_0;
-        int count = coordinates.size();
-        for (int i = 0; i < count; i++) {
-            coordinates[i].x += mata->origin_x;
-            coordinates[i].y += mata->origin_y;
-            PlaneCoordinate plane = PlaneCoordinate(coordinates[i].x, coordinates[i].y);
-            GeodeticCoordinate coord = gauss.inverse(plane);
-            // printf("lng lat x y  %f %f %f %f \r\n", coord.lng * 1000000, coord.lat * 1000000, plane.x, plane.y);
-            coordinates[i].x  = coord.lng;
-            coordinates[i].y= coord.lat;
-        }
+    } else if (mata->version == OdataVersion::ODATA_2_0) {
+
+    } else if (mata->version == OdataVersion::ENTITY_1_0) {
+
     }
 }
 
@@ -154,37 +166,43 @@ QString ODataPolygon::toWKT() {
 }
 
 void ODataPolygon::unprojtion(MapMataData *mata) {
-    if (mata->projType == ProjType::Equal_Angle_Cone && mata->projUnit == ProjUnit::Second) {
-        int count = coordinates.size();
-        for (int i = 0; i < count; i++) {
-            int points = coordinates[i].size();
-            for (int j = 0; j < points; j++) {
-                coordinates[i][j].x = mata->origin_x + (double)(coordinates[i][j].x / 3600);
-                coordinates[i][j].y = mata->origin_y + (double)(coordinates[i][j].y / 3600);
+    if (mata->version == OdataVersion::ODATA_1_0) {
+        if (mata->projType == ProjType::Equal_Angle_Cone && mata->projUnit == ProjUnit::Second) {
+            int count = coordinates.size();
+            for (int i = 0; i < count; i++) {
+                int points = coordinates[i].size();
+                for (int j = 0; j < points; j++) {
+                    coordinates[i][j].x = mata->origin_x + (double)(coordinates[i][j].x / 3600);
+                    coordinates[i][j].y = mata->origin_y + (double)(coordinates[i][j].y / 3600);
+                }
             }
-        }
-    } else if (mata->projType == ProjType::Gauss) {
-        Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
-        GaussProjection gauss;
-        gauss.ellipsoid = xian80;
-        gauss.falseEasting = mata->gauss_number * 1000000.0 + 500000.0;
-        gauss.falseNorthing = 0.0;
-        gauss.latitudeOfNaturalOrigin = 0.0;
-        gauss.longitudeOfNaturalOrigin = mata->lon_0;
+        } else if (mata->projType == ProjType::Gauss) {
+            Ellipsoid xian80 = Ellipsoid("ODATA Custom", mata->a, 0, 1.0 / mata->e, "ODATA Custom");
+            GaussProjection gauss;
+            gauss.ellipsoid = xian80;
+            gauss.falseEasting = mata->gauss_number * 1000000.0 + 500000.0;
+            gauss.falseNorthing = 0.0;
+            gauss.latitudeOfNaturalOrigin = 0.0;
+            gauss.longitudeOfNaturalOrigin = mata->lon_0;
 
-        int count = coordinates.size();
-        for (int i = 0; i < count; i++) {
-            int points = coordinates[i].size();
-            for (int j = 0; j < points; j++) {
-                coordinates[i][j].x += mata->origin_x;
-                coordinates[i][j].y += mata->origin_y;
-                PlaneCoordinate plane = PlaneCoordinate(coordinates[i][j].x, coordinates[i][j].y);
-                GeodeticCoordinate coord = gauss.inverse(plane);
-                // printf("lng lat x y  %f %f %f %f \r\n", coord.lng * 1000000, coord.lat * 1000000, plane.x, plane.y);
-                coordinates[i][j].x  = coord.lng;
-                coordinates[i][j].y= coord.lat;
+            int count = coordinates.size();
+            for (int i = 0; i < count; i++) {
+                int points = coordinates[i].size();
+                for (int j = 0; j < points; j++) {
+                    coordinates[i][j].x += mata->origin_x;
+                    coordinates[i][j].y += mata->origin_y;
+                    PlaneCoordinate plane = PlaneCoordinate(coordinates[i][j].x, coordinates[i][j].y);
+                    GeodeticCoordinate coord = gauss.inverse(plane);
+                    // printf("lng lat x y  %f %f %f %f \r\n", coord.lng * 1000000, coord.lat * 1000000, plane.x, plane.y);
+                    coordinates[i][j].x  = coord.lng;
+                    coordinates[i][j].y= coord.lat;
+                }
             }
         }
+    } else if (mata->version == OdataVersion::ODATA_2_0) {
+
+    } else if (mata->version == OdataVersion::ENTITY_1_0) {
+
     }
 }
 

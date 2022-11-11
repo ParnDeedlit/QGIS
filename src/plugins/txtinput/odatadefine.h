@@ -13,6 +13,12 @@ enum FileSuffix {
     ZB = 3
 };
 
+enum OdataVersion {
+    ODATA_1_0 = 0,
+    ODATA_2_0 = 1,
+    ENTITY_1_0 = 2
+};
+
 class  File {
 public:
     QString name;
@@ -50,6 +56,7 @@ enum ProjUnit {
 
 class MapMataData {
 public:
+    OdataVersion version;
     QString name;
     File file;
 

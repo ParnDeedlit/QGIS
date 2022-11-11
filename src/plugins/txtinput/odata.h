@@ -12,15 +12,8 @@
 using namespace std;
 
 class ODATA {
-private:
-    static ODATA *instance;
-    static vector<File> *metadata;
-
 public:
-    static ODATA* getInstance();
-    static void initMetaData();
-
-    vector<File>* getMetaData();
+    OdataVersion version;
 
     QString getCodeByShortName(QString shortname);
     QString getCnnameByShortName(QString shortname);

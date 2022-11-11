@@ -44,6 +44,15 @@ PGconn* txtinputDock::tryConnectPostgis() {
 }
 
 void txtinputDock::on_selectDirctionButton_clicked() {
+    OdataVersion version;
+    if(radioOdata->isChecked()) {
+        version = OdataVersion::ODATA_1_0;
+    } else if (radioNewOdata->isChecked()) {
+        version = OdataVersion::ODATA_2_0;
+    } else if (radioNewEntity->isChecked()) {
+        version = OdataVersion::ENTITY_1_0;
+    }
+
     QString dir = QFileDialog::getExistingDirectory(this, "选择文件夹");
     directoryEdit->setText(dir);
     TxtReader reader;
@@ -69,6 +78,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
     metamodel->setHorizontalHeaderItem(11, new QStandardItem("坐标放大系数"));
     metamodel->setHorizontalHeaderItem(12, new QStandardItem("相对原点横坐标"));
     metamodel->setHorizontalHeaderItem(13, new QStandardItem("相对原点纵坐标"));
+    metamodel->setHorizontalHeaderItem(14, new QStandardItem("输入版本"));
 
     int dircount = dirinfos.size();
     for(int i = 0; i < dircount; i++) {
@@ -77,6 +87,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         tablemodel->setItem(i, 1, new QStandardItem(dirinfos[i].path));
         QFileInfoList nodefiles = reader.readNodeDir(dirinfos[i].path);
         ODATA odata;
+        odata.version = version;
         Map* map = odata.initMap(nodefiles);
         odata.parseMap(map);
         std::vector<FileGroup*> valids =  map->groups;
@@ -84,6 +95,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         QString count = QString::number(layercount);
         tablemodel->setItem(i, 2, new QStandardItem(count));
         //-------------------------------Metadata-------------------------------------
+        map->metadata.version = version;
         metamodel->setItem(i, 0, new QStandardItem(dirinfos[i].name));
         metamodel->setItem(i, 1, new QStandardItem(QString::number(map->metadata.a)));
         metamodel->setItem(i, 2, new QStandardItem(QString::number(map->metadata.e)));
@@ -98,6 +110,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         metamodel->setItem(i, 11, new QStandardItem(QString::number(map->metadata.scale)));
         metamodel->setItem(i, 12, new QStandardItem(QString::number(map->metadata.origin_x)));
         metamodel->setItem(i, 13, new QStandardItem(QString::number(map->metadata.origin_y)));
+        metamodel->setItem(i, 14, new QStandardItem(QString::number(map->metadata.version)));
         maps.push_back(map);
     }
 
