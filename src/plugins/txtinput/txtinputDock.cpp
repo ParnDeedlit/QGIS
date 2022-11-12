@@ -169,9 +169,11 @@ void txtinputDock::on_executeButton_clicked() {
         int count = map->groups.size();
         for (int i = 0; i < count; i++) {
             FileGroup *filegroup = map->groups[i];
-            QString m = filegroup->matadata.layername;
-
-            if(filegroup->matadata.code.compare("280000") == 0) {
+            File meta = filegroup->matadata;
+            if (meta.name.compare("") == 0) {
+                meta = filegroup->geometry;
+            }
+            if(meta.code.compare("280000") == 0 || meta.code.compare("27000000") == 0) {
                 Layer *layer_anno = new Layer;
                 layer_anno->setFileGroup(*filegroup)
                         ->setMapMetadata(map->metadata)

@@ -142,24 +142,43 @@ QString MetadataLineStringToStringByReg(QString linestring, QString patch) {
     return str;
 }
 
-int AttributeLineStringTypeCount(QString linestring, LayerType type) {
+int AttributeLineStringTypeCount(QString linestring, LayerType type, OdataVersion version) {
     QString layertype;
     int count = -1;
-    switch(type) {
-        case LayerType::Point:
-        layertype = "P";
-        break;
-    case LayerType::Line:
-        layertype = "L";
-        break;
-    case LayerType::Area:
-        layertype = "A";
-        break;
-    case LayerType::Anno:
-        layertype = "N";
-        break;
-    default:
-        break;
+    if (version == OdataVersion::ODATA_1_0) {
+        switch(type) {
+            case LayerType::Point:
+            layertype = "P";
+            break;
+        case LayerType::Line:
+            layertype = "L";
+            break;
+        case LayerType::Area:
+            layertype = "A";
+            break;
+        case LayerType::Anno:
+            layertype = "N";
+            break;
+        default:
+            break;
+        }
+    } else if (version == OdataVersion::ODATA_2_0 || version == OdataVersion::ENTITY_1_0) {
+        switch(type) {
+            case LayerType::Point:
+            layertype = "P";
+            break;
+        case LayerType::Line:
+            layertype = "L";
+            break;
+        case LayerType::Area:
+            layertype = "A";
+            break;
+        case LayerType::Anno:
+            layertype = "Q";
+            break;
+        default:
+            break;
+        }
     }
 
     QString str;
@@ -173,24 +192,43 @@ int AttributeLineStringTypeCount(QString linestring, LayerType type) {
     return count;
 }
 
-int GeometryLineStringTypeCount(QString linestring, LayerType type) {
+int GeometryLineStringTypeCount(QString linestring, LayerType type, OdataVersion version) {
     QString layertype;
     int count = -1;
-    switch(type) {
-        case LayerType::Point:
-        layertype = "P";
-        break;
-    case LayerType::Line:
-        layertype = "L";
-        break;
-    case LayerType::Area:
-        layertype = "A";
-        break;
-    case LayerType::Anno:
-        layertype = "N";
-        break;
-    default:
-        break;
+    if (version == OdataVersion::ODATA_1_0) {
+        switch(type) {
+            case LayerType::Point:
+            layertype = "P";
+            break;
+        case LayerType::Line:
+            layertype = "L";
+            break;
+        case LayerType::Area:
+            layertype = "A";
+            break;
+        case LayerType::Anno:
+            layertype = "N";
+            break;
+        default:
+            break;
+        }
+    } else if (version == OdataVersion::ODATA_2_0 || version == OdataVersion::ENTITY_1_0) {
+        switch(type) {
+            case LayerType::Point:
+            layertype = "P";
+            break;
+        case LayerType::Line:
+            layertype = "L";
+            break;
+        case LayerType::Area:
+            layertype = "A";
+            break;
+        case LayerType::Anno:
+            layertype = "Q";
+            break;
+        default:
+            break;
+        }
     }
 
     QString str;
@@ -204,7 +242,7 @@ int GeometryLineStringTypeCount(QString linestring, LayerType type) {
     return count;
 }
 
-bool GeometryLineCoordCount(QString linestring, int &index, int &count) {
+bool GeometryLineCoordCount(QString linestring, int &index, int &count, OdataVersion version) {
     QString indexstr;
     QString countstr;
     QString reg("\\s*(\\d+)\\s+(\\d+)\\s*");
@@ -220,24 +258,34 @@ bool GeometryLineCoordCount(QString linestring, int &index, int &count) {
     return false;
 }
 
-bool GeometryAreaRingCount(QString linestring, int &index, int &count) {
+bool GeometryAreaRingCount(QString linestring, int &index, int &count, OdataVersion version) {
     QString indexstr;
     QString countstr;
     QString doubleReg = "(NULL|-?[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*|0?\\.0+|0)";
     QString reg("\\s*(\\d+)\\s+" + doubleReg + "\\s+" + doubleReg + "\\s+(\\d+)\\s*");
+    if (version == OdataVersion::ODATA_1_0) {
+        reg = "\\s*(\\d+)\\s+" + doubleReg + "\\s+" + doubleReg + "\\s+(\\d+)\\s*";
+    } else if (version == OdataVersion::ODATA_2_0 || version == OdataVersion::ENTITY_1_0) {
+        reg = "\\s*(\\d+)\\s+(\\d+)\\s*";
+    }
     QRegularExpression re_a(reg);
     QRegularExpressionMatch match_a = re_a.match(linestring);
     if(match_a.hasMatch()) {
-       indexstr = match_a.captured(1);
-       countstr = match_a.captured(4);
-       index = indexstr.toInt();
-       count = countstr.toInt();
+        if (version == OdataVersion::ODATA_1_0) {
+            indexstr = match_a.captured(1);
+            countstr = match_a.captured(4);
+        } else if (version == OdataVersion::ODATA_2_0 || version == OdataVersion::ENTITY_1_0) {
+            indexstr = match_a.captured(1);
+            countstr = match_a.captured(2);
+        }
+        index = indexstr.toInt();
+        count = countstr.toInt();
        return true;
     }
     return false;
 }
 
-bool GeometryAreaCoordCount(QString linestring, int &count) {
+bool GeometryAreaCoordCount(QString linestring, int &count, OdataVersion version) {
     QString indexstr;
     QString countstr;
     QString reg("\\s*(\\d+)\\s*");

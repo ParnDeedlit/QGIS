@@ -171,36 +171,68 @@ ODataFeature* ODataFeature::setGeometryPoint(QString linestring, int validIndex,
     const int first_index = 2;
     QString reg("\\s*(\\d+)");
 
-    reg += "\\s*" + ODataDoubleReg;
-    reg += "\\s*" + ODataDoubleReg;
-    reg += "\\s*" + ODataDoubleReg;
-    reg += "\\s*" + ODataDoubleReg;
+    if (mapMatadata->version == OdataVersion::ODATA_1_0) {
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
 
-    QRegularExpression re_a(reg);
-    QRegularExpressionMatch match_a = re_a.match(linestring);
-    if(match_a.hasMatch()) {
-        isValid = true;
-        // printf(QString(match_a.captured(2) + "  " + match_a.captured(3) + "\r\n").toStdString().c_str());
-        QString index = match_a.captured(1);
-        // printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
-        if(index.toInt() == validIndex) {
-            strx = match_a.captured(0 + first_index);
-            stry = match_a.captured(1 + first_index);
-            geometry.point.coordinates.x = strx.toDouble();
-            geometry.point.coordinates.y = stry.toDouble();
-            if (match_a.capturedLength() >= 5) {
-                strx1 = match_a.captured(2 + first_index);
-                stry1 = match_a.captured(3 + first_index);
-                geometry.point.auxiliary.x = strx1.toDouble();
-                geometry.point.auxiliary.y = stry1.toDouble();
+        QRegularExpression re_a(reg);
+        QRegularExpressionMatch match_a = re_a.match(linestring);
+        if(match_a.hasMatch()) {
+            isValid = true;
+            // printf(QString(match_a.captured(2) + "  " + match_a.captured(3) + "\r\n").toStdString().c_str());
+            QString index = match_a.captured(1);
+            // printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
+            if(index.toInt() == validIndex) {
+                strx = match_a.captured(0 + first_index);
+                stry = match_a.captured(1 + first_index);
+                geometry.point.coordinates.x = strx.toDouble();
+                geometry.point.coordinates.y = stry.toDouble();
+                if (match_a.capturedLength() >= 5) {
+                    strx1 = match_a.captured(2 + first_index);
+                    stry1 = match_a.captured(3 + first_index);
+                    geometry.point.auxiliary.x = strx1.toDouble();
+                    geometry.point.auxiliary.y = stry1.toDouble();
+                }
+                // printf("x %f,  y %f \r\n", strx.toDouble() ,stry.toDouble());
+            } else {
+                isValid = false;
             }
-            // printf("x %f,  y %f \r\n", strx.toDouble() ,stry.toDouble());
         } else {
             isValid = false;
         }
-    } else {
-        isValid = false;
+    } else if (mapMatadata->version == OdataVersion::ODATA_2_0
+        || mapMatadata->version == OdataVersion::ENTITY_1_0) {
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
+        int index = 0;
+
+        QRegularExpression re_a(reg);
+        QRegularExpressionMatchIterator i = re_a.globalMatch(linestring);
+        if(i.hasNext()) {
+            isValid = true;
+            QRegularExpressionMatch match_a = i.next();
+            bool validx = false;
+            bool validy = false;
+            double px = match_a.captured(2).toDouble(&validx);
+            double py = match_a.captured(3).toDouble(&validy);
+            if (validx && validy) {
+                if (index == 0) {
+                    geometry.point.coordinates.x = px;
+                    geometry.point.coordinates.y = py;
+                } else {
+                    geometry.point.auxiliary.x = px;
+                    geometry.point.auxiliary.y = py;
+                }
+            }
+            index++;
+        } else {
+            isValid = false;
+        }
     }
+
+
     return this;
 }
 
@@ -259,33 +291,69 @@ ODataFeature* ODataFeature::setGeometryAnno(QString linestring, int validIndex, 
     const int first_index = 2;
     QString reg("\\s*(\\d+)");
 
-    reg += "\\s*" + ODataDoubleReg;
-    reg += "\\s*" + ODataDoubleReg;
-    reg += "\\s*" + ODataDoubleReg;
-    reg += "\\s*" + ODataDoubleReg;
+    if (mapMatadata->version == OdataVersion::ODATA_1_0) {
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
 
-    QRegularExpression re_a(reg);
-    QRegularExpressionMatch match_a = re_a.match(linestring);
-    if(match_a.hasMatch()) {
-        isValid = true;
-        // printf(QString(match_a.captured(2) + "  " + match_a.captured(3) + "\r\n").toStdString().c_str());
-        QString index = match_a.captured(1);
-        // printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
-        if(index.toInt() == validIndex) {
-            strx = match_a.captured(0 + first_index);
-            stry = match_a.captured(1 + first_index);
-            strx1 = match_a.captured(2 + first_index);
-            stry1 = match_a.captured(3 + first_index);
-            geometry.point.coordinates.x = strx.toDouble();
-            geometry.point.coordinates.y = stry.toDouble();
-            geometry.point.auxiliary.x = strx1.toDouble();
-            geometry.point.auxiliary.y = stry1.toDouble();
-            // printf("x %f,  y %f \r\n", strx.toDouble() ,stry.toDouble());
+        QRegularExpression re_a(reg);
+        QRegularExpressionMatch match_a = re_a.match(linestring);
+        if(match_a.hasMatch()) {
+            isValid = true;
+            // printf(QString(match_a.captured(2) + "  " + match_a.captured(3) + "\r\n").toStdString().c_str());
+            QString index = match_a.captured(1);
+            // printf("cur index %d,  valid index %d \r\n", index.toInt() ,validIndex);
+            if(index.toInt() == validIndex) {
+                strx = match_a.captured(0 + first_index);
+                stry = match_a.captured(1 + first_index);
+                strx1 = match_a.captured(2 + first_index);
+                stry1 = match_a.captured(3 + first_index);
+                geometry.point.coordinates.x = strx.toDouble();
+                geometry.point.coordinates.y = stry.toDouble();
+                geometry.point.auxiliary.x = strx1.toDouble();
+                geometry.point.auxiliary.y = stry1.toDouble();
+                // printf("x %f,  y %f \r\n", strx.toDouble() ,stry.toDouble());
+            } else {
+                isValid = false;
+            }
         } else {
             isValid = false;
         }
-    } else {
-        isValid = false;
+    } else if (mapMatadata->version == OdataVersion::ODATA_2_0
+       || mapMatadata->version == OdataVersion::ENTITY_1_0) {
+        reg += "\\s*" + ODataDoubleReg;
+        reg += "\\s*" + ODataDoubleReg;
+        int index = 0;
+
+        QRegularExpression re_a(reg);
+        QRegularExpressionMatchIterator i = re_a.globalMatch(linestring);
+
+        printf("anno %s %b %s \r\n", reg.toStdString().c_str(),
+               i.hasNext(), linestring.toStdString().c_str());
+
+        if(i.hasNext()) {
+            isValid = true;
+            QRegularExpressionMatch match_a = i.next();
+            bool validx = false;
+            bool validy = false;
+            double px = match_a.captured(2).toDouble(&validx);
+            double py = match_a.captured(3).toDouble(&validy);
+            if (validx && validy) {
+                if (index == 0) {
+                    geometry.point.coordinates.x = px;
+                    geometry.point.coordinates.y = py;
+                } else {
+                    geometry.point.auxiliary.x = px;
+                    geometry.point.auxiliary.y = py;
+                }
+            }
+            index++;
+        } else {
+            isValid = false;
+        }
     }
+
+
     return this;
 }

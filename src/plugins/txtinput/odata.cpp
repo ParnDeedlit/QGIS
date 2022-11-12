@@ -158,18 +158,36 @@ Map* ODATA::initMap(QFileInfoList list) {
     int size = list.count();
     for(int i = 0; i < size; i++) {
         QString suffix = list[i].suffix();
-        if (suffix.compare("SMS") == 0) {
-            File layer;
-            layer.name = list[i].baseName();
-            layer.layername = suffix.mid(0, 1).toUpper();
-            layer.suffix = list[i].suffix();
-            layer.path = list[i].absoluteFilePath();
-            layer.prefix = list[i].baseName();
-            layer.code = getCodeByShortName(layer.layername);
-            MapMataData mapmata;
-            mapmata.file = layer;
-            map->metadata = mapmata;
-            break;
+        if (version == OdataVersion::ODATA_1_0) {
+            if (suffix.compare("SMS") == 0) {
+                File layer;
+                layer.name = list[i].baseName();
+                layer.layername = suffix.mid(0, 1).toUpper();
+                layer.suffix = list[i].suffix();
+                layer.path = list[i].absoluteFilePath();
+                layer.prefix = list[i].baseName();
+                layer.code = getCodeByShortName(layer.layername);
+                // printf("layer code %s", layer.code.toStdString().c_str());
+                MapMataData mapmata;
+                mapmata.file = layer;
+                map->metadata = mapmata;
+                break;
+            }
+        } else if (version == OdataVersion::ODATA_2_0 || version == OdataVersion::ENTITY_1_0) {
+            if (suffix.compare("ZMS") == 0) {
+                File layer;
+                layer.name = list[i].baseName();
+                layer.layername = suffix.mid(0, 1).toUpper();
+                layer.suffix = list[i].suffix();
+                layer.path = list[i].absoluteFilePath();
+                layer.prefix = list[i].baseName();
+                layer.code = getCodeByShortName(layer.layername);
+                // printf("layer code %s", layer.code.toStdString().c_str());
+                MapMataData mapmata;
+                mapmata.file = layer;
+                map->metadata = mapmata;
+                break;
+            }
         }
     }
     map->groups = checkValidGroup(list);
@@ -177,15 +195,15 @@ Map* ODATA::initMap(QFileInfoList list) {
 }
 
 std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
-    std::vector<FileGroup*> layergroup;
+    std::vector<FileGroup*> filegroup;
     int size = list.count();
     std::unordered_map<QString, FileGroup*> groupMap;
 
     for(int i = 0; i < size; i++) {
         QString suffix = list[i].suffix();
-        if (suffix.compare("SMS") == 0) {
+        if (suffix.compare("SMS") == 0 || suffix.compare("ZMS") == 0) {
         } else {
-        if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("C") == 0) {
+        //if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("Q") == 0) {
             File layer;
             layer.name = list[i].baseName();
             layer.layername = suffix.mid(0, 1).toUpper();
@@ -195,6 +213,7 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
             layer.prefix = list[i].baseName();
             layer.cn_name = getCnnameByShortName(layer.layername);
             layer.code = getCodeByShortName(layer.layername);
+            // printf("layer code cn_name %s %s \r\n", layer.code.toStdString().c_str(), layer.cn_name.toStdString().c_str());
             auto it = groupMap.find(layer.layername);
             if ( it != groupMap.end()) {
                 if (layer.filetype.compare("MS") == 0) {
@@ -220,15 +239,15 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
                 }
                 groupMap.emplace(layer.layername, group);
             }
-        }
+        //}
         }
     }
 
     for (auto it = groupMap.begin(); it != groupMap.end(); it++) {
-        layergroup.push_back(it->second);
+        filegroup.push_back(it->second);
     }
 
-    return layergroup;
+    return filegroup;
 }
 
 QString ODATA::getCodeByShortName(QString shortname) {

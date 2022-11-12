@@ -119,11 +119,11 @@ double MetadataLineStringToDoubleByReg(QString linestring, QString patch);
 int MetadataLineStringToIntByReg(QString linestring, QString patch);
 QString MetadataLineStringToStringByReg(QString linestring, QString patch);
 
-int AttributeLineStringTypeCount(QString linestring, LayerType type);
-int GeometryLineStringTypeCount(QString linestring, LayerType type);
+int AttributeLineStringTypeCount(QString linestring, LayerType type, OdataVersion version = OdataVersion::ODATA_1_0);
+int GeometryLineStringTypeCount(QString linestring, LayerType type, OdataVersion version = OdataVersion::ODATA_1_0);
 
-bool GeometryLineCoordCount(QString linestring, int &index, int &count);
-bool GeometryAreaRingCount(QString linestring, int &index, int &count);
-bool GeometryAreaCoordCount(QString linestring, int &count);
+bool GeometryLineCoordCount(QString linestring, int &index, int &count, OdataVersion version = OdataVersion::ODATA_1_0);
+bool GeometryAreaRingCount(QString linestring, int &index, int &count, OdataVersion version = OdataVersion::ODATA_1_0);
+bool GeometryAreaCoordCount(QString linestring, int &count, OdataVersion version = OdataVersion::ODATA_1_0);
 
 #endif // ODATADEFINE_H
