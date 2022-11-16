@@ -19,6 +19,10 @@ public:
     bool isValid = true;
 
     QString toPostgis(QString tablename, vector<ODataAttributeMeta> fields);
+
+    QString toPostgisTable(QString tablename, vector<ODataAttributeMeta> fields);
+    QString toPostgisVaules(QString tablename, vector<ODataAttributeMeta> fields);
+
     ODataFeature* setGeometryPoint(QString linestring, int validIndex, MapMataData *mapMatadata);
     ODataFeature* setGeometryLine(QString linestring, MapMataData *mapMatadata);
     ODataFeature* setGeometryArea(QString linestring, int ringindex, MapMataData *mapMatadata);

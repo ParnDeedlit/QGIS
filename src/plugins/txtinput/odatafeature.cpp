@@ -41,6 +41,55 @@ QString ODataFeature::toPostgis(QString tablename, vector<ODataAttributeMeta> fi
     return sql;
 }
 
+QString ODataFeature::toPostgisTable(QString tablename, vector<ODataAttributeMeta> fields) {
+    // INSERT INTO geotable ( the_geom, the_name ) VALUES ( ST_GeomFromEWKT('SRID=312;POINTM(-126.4 45.32 15)'), 'A Place' );
+    QString sql = "INSERT INTO " + tablename;
+    QString key = " ( ";
+
+    // attrbutes
+    int count = properties.size();
+    int meta_count = fields.size();
+    if (count == meta_count) {
+        for (int i = 0; i < count; i++) {
+            ODataAttribute attr = properties[i];
+            key = key + fields[i].fieldname + ", ";
+        }
+    }
+
+    // geometry
+    key = key + " geom";
+    key += " )";
+    sql = sql + key + " VALUES ";
+    return sql;
+}
+
+QString ODataFeature::toPostgisVaules(QString tablename, vector<ODataAttributeMeta> fields) {
+    // INSERT INTO geotable ( the_geom, the_name ) VALUES ( ST_GeomFromEWKT('SRID=312;POINTM(-126.4 45.32 15)'), 'A Place' );
+    QString value = " ( ";
+
+    // attrbutes
+    int count = properties.size();
+    int meta_count = fields.size();
+    if (count == meta_count) {
+        for (int i = 0; i < count; i++) {
+            ODataAttribute attr = properties[i];
+            if (attr.type.compare("string") == 0) {
+                value = value + "'" + attr.value.toString() + "', ";
+            } else if (attr.type.compare("int") == 0) {
+                value = value + QString::number(attr.value.toInt()) + ", ";
+            } else if (attr.type.compare("double") == 0) {
+                value = value + QString::number(attr.value.toDouble()) + ", ";
+            }
+        }
+    }
+
+    // geometry
+    value = value + "ST_GeometryFromText('" + geometry.toWKT() + "', 4326)";
+    value += " )";
+
+    return value;
+}
+
 
 ODataFeature* ODataFeature::setPropertiesSplit(QString linestring, vector<ODataAttributeMeta> fields, int validIndex) {
     QString str;

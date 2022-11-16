@@ -33,7 +33,8 @@ public:
     void excutePostgis(PGconn *conn);
     void deletePostgisHasExist(PGconn *conn);
     void checkPostgisHasExist(PGconn *conn);
-    void writeToPostgis(PGconn *conn);
+    void writeToPostgis(PGconn *conn, int batchcount = 10);
+    void writeToGeojson(QString uri, int batchcount = 10);
 
     Layer* readFromFile();
 

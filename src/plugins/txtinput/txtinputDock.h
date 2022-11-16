@@ -32,6 +32,9 @@ private slots:
 
     void on_deleteButton_clicked();
     void on_createIndexButton_clicked();
+
+    void on_radioPostgis_clicked();
+    void on_radioGeojson_clicked();
 private:
     QgisInterface *qgsInterface = nullptr;
     TxtExportToPostgis *txtExport = nullptr;
@@ -44,6 +47,11 @@ private:
     vector<Map*> maps;
 
     PGconn* tryConnectPostgis();
+
+    void initProcess();
+    void clear();
+
+    void makeJson();
 };
 
 #endif // TXTINPUTDOCK_H

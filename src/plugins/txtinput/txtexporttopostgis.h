@@ -14,6 +14,7 @@ public:
 
     PGconn* setConnection(QString host, QString port, QString database, QString username, QString password);
     PGconn* getConnection();
+    void releaseConnection();
 
     bool createTable(QString table);
     // bool insertItem(QString table);

@@ -71,6 +71,84 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
 
   QString sourceType = dsUri.param( QStringLiteral( "type" ) );
   QString sourcePath = dsUri.param( QStringLiteral( "url" ) );
+
+  //-------------------------------------------------------------------------------
+  QgsCoordinateTransform ct( mRootTileMatrix.crs(), QgsCoordinateReferenceSystem( "EPSG:4326" ), mTransformContext );
+  ct.setBallparkTransformsAreAppropriate( true );
+  QgsRectangle tileboundsExtent = mExtent;
+  QgsRectangle wgsExtent = ct.transform( tileboundsExtent );
+
+  QRegularExpression re_mbtile("\\.mbtiles");
+  QString json = dsUri.param( QStringLiteral( "url" ) ).replace(re_mbtile, ".json");
+  QFile jsonFile(json);
+  jsonFile.open(QIODevice::ReadWrite);
+
+  QString x = "{\r\n \"centerX\":" + QString::number(mExtent.center().x(), 'g', 12) + ",\r\n";
+  jsonFile.write(x.toStdString().c_str());
+  QString y = "\"centerY\":" + QString::number(mExtent.center().y(), 'g', 12) + ",\r\n";
+  jsonFile.write(y.toStdString().c_str());
+  QString ox = "\"originX\":" + QString::number(wgsExtent.center().x(), 'g', 12) + ",\r\n";
+  jsonFile.write(ox.toStdString().c_str());
+  QString oy = "\"originY\":" + QString::number(wgsExtent.center().y(), 'g', 12) + ",\r\n";
+  jsonFile.write(oy.toStdString().c_str());
+  QString min = "\"minZoom\":" + QString::number(mMinZoom) + ",\r\n";
+  jsonFile.write(min.toStdString().c_str());
+  QString max = "\"maxZoom\":" + QString::number(mMaxZoom) + ",\r\n";
+  jsonFile.write(max.toStdString().c_str());
+  QString init = "\"initZoom\":" + QString::number((mMinZoom + mMaxZoom) / 2, 'g', 12) + ",\r\n";
+  jsonFile.write(init.toStdString().c_str());
+  QString layers = "\"layers\":[] \r\n}";
+  jsonFile.write(layers.toStdString().c_str());
+  jsonFile.close();
+  //-------------------------------------------------------------------------------
+  QString meta = dsUri.param( QStringLiteral( "url" ) ).replace(re_mbtile, "_metadata.json");
+  QFile meatFile(meta);
+  meatFile.open(QIODevice::ReadWrite);
+  QString proj = "{\r\n \"projType\": 0 \r\n}";
+  meatFile.write(proj.toStdString().c_str());
+  meatFile.close();
+  //-------------------------------------------------------------------------------
+  QString style = dsUri.param( QStringLiteral( "url" ) ).replace(re_mbtile, "_style.json");
+  QRegularExpression re_mapname("[/|\\]([\\w\u4E00-\u9FA5A-Za-z0-9_、]+)\\.mbtiles");
+  QRegularExpressionMatch match_a = re_mapname.match(dsUri.param( QStringLiteral( "url" ) ));
+  QString mapName("NewMap");
+  if(match_a.hasMatch() && match_a.capturedLength() >= 1) {
+      mapName = match_a.captured(1);
+  }
+
+  QFile styleFile(style);
+  styleFile.open(QIODevice::ReadWrite);
+  QString version = "{\r\n \"version\": 8, \r\n";
+  styleFile.write(version.toStdString().c_str());
+  QString glyphs = "\"glyphs\": \"http://localhost:6163/igs/rest/mrms/vtiles/fonts/{fontstack}/{range}.pbf\", \r\n";
+  styleFile.write(glyphs.toStdString().c_str());
+  QString sprite = "\"sprite\": \"http://localhost:6163/igs/rest/mrms/vtiles/sprite\", \r\n";
+  styleFile.write(sprite.toStdString().c_str());
+  QString id = "\"id\": \""+ mapName +"\", \r\n";
+  styleFile.write(id.toStdString().c_str());
+  QString name = "\"name\": \""+ mapName +"\", \r\n";
+  styleFile.write(name.toStdString().c_str());
+
+  QString sources = "\"sources\": \r\n {\"type\": \"vector\", \r\n";
+  styleFile.write(sources.toStdString().c_str());
+  QString mapsource = "\"" +mapName + "\": "+ "{ \r\n";
+  styleFile.write(mapsource.toStdString().c_str());
+  QString bound = "\"bound\": ["+ QString::number(wgsExtent.xMinimum(), 'g', 12)
+          + "," + QString::number(wgsExtent.yMinimum(), 'g', 12)
+          + "," + QString::number(wgsExtent.xMaximum(), 'g', 12)
+          + "," + QString::number(wgsExtent.yMaximum(), 'g', 12)
+          +"], \r\n";
+  styleFile.write(bound.toStdString().c_str());
+  QString minZoom = "\"minZoom\": "+  QString::number(mMinZoom) +", \r\n";
+  styleFile.write(minZoom.toStdString().c_str());
+  QString maxZoom = "\"maxZoom\": "+  QString::number(mMaxZoom) +", \r\n";
+  styleFile.write(maxZoom.toStdString().c_str());
+  QString tiles = "\"tiles\": [\"http://localhost:6163/igs/rest/mrms/tile/"+ mapName +"/{z}/{y}/{x}?type=pbf\"] \r\n } \r\n";
+  styleFile.write(tiles.toStdString().c_str());
+  styleFile.write("}\r\n }");
+  styleFile.close();
+  //-------------------------------------------------------------------------------
+
   if ( sourceType == QLatin1String( "xyz" ) )
   {
     // remove the initial file:// scheme
@@ -334,3 +412,12 @@ QByteArray QgsVectorTileWriter::writeSingleTile( QgsTileXYZ tileID, QgsFeedback 
 
   return encoder.encode();
 }
+
+//bool QgsVectorTileWriter::writeJson() {
+//    // printf("mapgis json %s \r\n", mDestinationUri.toStdString().c_str());
+//    QRegularExpression re_a(".mbtiles");
+//    QString json = mDestinationUri.replace(re_a, ".json");
+//    QFile jsonFile(json);
+//    jsonFile.open(QIODevice::ReadWrite);
+//    jsonFile.write("test");
+//}

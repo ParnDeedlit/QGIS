@@ -203,7 +203,7 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
         QString suffix = list[i].suffix();
         if (suffix.compare("SMS") == 0 || suffix.compare("ZMS") == 0) {
         } else {
-        //if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("Q") == 0) {
+        //if (suffix.length() > 0 && suffix.mid(0, 1).toUpper().compare("H") == 0) {
             File layer;
             layer.name = list[i].baseName();
             layer.layername = suffix.mid(0, 1).toUpper();
@@ -239,8 +239,8 @@ std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
                 }
                 groupMap.emplace(layer.layername, group);
             }
-        //}
         }
+        //}
     }
 
     for (auto it = groupMap.begin(); it != groupMap.end(); it++) {

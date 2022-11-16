@@ -54,6 +54,11 @@ enum ProjUnit {
     Second = 3,
 };
 
+enum OutputFormat {
+    PostGIS = 0,
+    Geojson = 1
+};
+
 class MapMataData {
 public:
     OdataVersion version;
@@ -79,6 +84,8 @@ public:
     double scale;
     double origin_x;
     double origin_y;
+
+    OutputFormat outputFormat;
 };
 
 class Map {

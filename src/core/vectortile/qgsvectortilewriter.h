@@ -163,6 +163,12 @@ class CORE_EXPORT QgsVectorTileWriter
      */
     bool writeTiles( QgsFeedback *feedback = nullptr );
 
+//    /**
+//     * @brief wirie mapgis format Json from igserver
+//     * @return true
+//     */
+//    bool writeJson();
+
     /**
      * Returns error message related to the previous call to writeTiles(). Will return
      * an empty string if writing was successful.

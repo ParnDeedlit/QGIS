@@ -1530,21 +1530,75 @@ Layer* Layer::readFromZbFileAnno() {
     return this;
 }
 
-void Layer::writeToPostgis(PGconn *conn) {
+void Layer::writeToPostgis(PGconn *conn, int batchcount) {
     int count = features.size();
     printf("features all count %i \r\n", count);
+//    for (int i = 0; i < count; i++) {
+//        ODataFeature feature = features[i];
+//        if (feature.isValid) {
+//            feature.geometry.unprojection(&mapMetadata);
+//            QString sql = feature.toPostgis(uri, fields);
+//            printf(sql.toStdString().c_str());
+//            printf("\r\n");
+//            PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//        }
+//    }
+
+
+    int batchindex = 0;
+    QString table("");
+    QString values("");
+    QString sql("");
+
     for (int i = 0; i < count; i++) {
         ODataFeature feature = features[i];
         if (feature.isValid) {
             feature.geometry.unprojection(&mapMetadata);
-            QString sql = feature.toPostgis(uri, fields);
-            printf(sql.toStdString().c_str());
-            printf("\r\n");
-            PGresult *res = PQexec(conn, sql.toStdString().c_str());
-        } else {
-//            QString sql = feature.toPostgis(uri, fields);
-//            printf(sql.toStdString().c_str());
-//            printf("\r\n");
+            QString value = feature.toPostgisVaules(uri, fields);
+            if (batchindex == 0) {
+                table = feature.toPostgisTable(uri, fields);
+                values = "";
+                if (i == count - 1 ) {
+                    value += ";";
+                    values += value;
+                    sql = table + values;
+                    PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//                    printf(sql.toStdString().c_str());
+//                    printf("1 \r\n");
+                } else {
+                    value += ", ";
+                    values += value;
+                }
+                batchindex++;
+            } else if (batchindex >= batchcount) {
+                value += ";";
+                values += value;
+                sql = table + values;
+                PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//                printf(sql.toStdString().c_str());
+//                printf("2 \r\n");
+                batchindex = 0;
+                table = "";
+                values = "";
+            } else {
+                if (i == count - 1 ) {
+                    value += ";";
+                    values += value;
+                    sql = table + values;
+                    PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//                    printf(sql.toStdString().c_str());
+//                    printf("3 \r\n");
+                } else {
+                    value += ", ";
+                    values += value;
+                }
+                batchindex++;
+            }
         }
     }
+    values += ";";
+}
+
+void Layer::writeToGeojson(QString uri, int batchcount) {
+
 }

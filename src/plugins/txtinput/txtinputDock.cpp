@@ -31,7 +31,37 @@ txtinputDock::~txtinputDock()
 
 }
 
+void txtinputDock::initProcess() {
+    layerProgressBar->setValue(0);
+    totalProgressBar->setValue(0);
+}
+
+void txtinputDock::clear() {
+    int count = maps.size();
+    for (int i = 0; i <count; i++) {
+        Map* map = maps[i];
+        if (map) {
+            delete map;
+        }
+    }
+    maps.clear();
+}
+
+void txtinputDock::makeJson() {
+    QString dsurl("url=/home/parndeedlit/Documents/西安包五/mbtiles/test_json.mbtiles");
+    QgsDataSourceUri uri(dsurl);
+    QString url = uri.param("url");
+    printf("mapgis json %s \r\n", url.toStdString().c_str());
+    QRegularExpression re_a("\\.mbtiles");
+    QString json = url.replace(re_a, ".json");
+    printf("mapgis json %s \r\n", json.toStdString().c_str());
+    QFile jsonFile(json);
+    jsonFile.open(QIODevice::ReadWrite);
+    jsonFile.write("test");
+}
+
 PGconn* txtinputDock::tryConnectPostgis() {
+    txtExport->releaseConnection();
     if (txtExport->getConnection() == nullptr) {
         host = hostEdit->text();
         port = QString::number(portBox->value());
@@ -43,7 +73,18 @@ PGconn* txtinputDock::tryConnectPostgis() {
     return txtExport->getConnection();
 }
 
+void txtinputDock::on_radioPostgis_clicked() {
+    tabOutput->setCurrentIndex(0);
+}
+
+void txtinputDock::on_radioGeojson_clicked() {
+    tabOutput->setCurrentIndex(1);
+}
+
 void txtinputDock::on_selectDirctionButton_clicked() {
+    makeJson();
+    initProcess();
+    clear();
     OdataVersion version;
     if(radioOdata->isChecked()) {
         version = OdataVersion::ODATA_1_0;

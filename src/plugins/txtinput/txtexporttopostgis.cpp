@@ -32,6 +32,14 @@ PGconn* TxtExportToPostgis::getConnection() {
     return _connection;
 }
 
+void TxtExportToPostgis::releaseConnection() {
+    if (_connection )
+    {
+      PQfinish(_connection);
+      _connection = nullptr;
+    }
+}
+
 QString TxtExportToPostgis::checkUser() {
     QString user;
     PGresult *res;

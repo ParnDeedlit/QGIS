@@ -78,7 +78,9 @@ QVariantMap QgsWriteVectorTilesBaseAlgorithm::processAlgorithm( const QVariantMa
     writer.setExtent( extent );
   }
 
-  const bool res = writer.writeTiles( feedback );
+   // const bool sprite = writer.writeJson();
+   const bool res = writer.writeTiles( feedback );
+
 
   if ( !res )
     throw QgsProcessingException( QObject::tr( "Failed to write vector tiles: " ) + writer.errorMessage() );
