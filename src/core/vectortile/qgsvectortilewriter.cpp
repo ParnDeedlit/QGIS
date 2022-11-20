@@ -129,9 +129,9 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
   QString name = "\"name\": \""+ mapName +"\", \r\n";
   styleFile.write(name.toStdString().c_str());
 
-  QString sources = "\"sources\": \r\n {\"type\": \"vector\", \r\n";
+  QString sources = "\"sources\": \r\n {";
   styleFile.write(sources.toStdString().c_str());
-  QString mapsource = "\"" +mapName + "\": "+ "{ \r\n";
+  QString mapsource = "\"" +mapName + "\": "+ "{ \r\n \"type\": \"vector\", \r\n";
   styleFile.write(mapsource.toStdString().c_str());
   QString bound = "\"bound\": ["+ QString::number(wgsExtent.xMinimum(), 'g', 12)
           + "," + QString::number(wgsExtent.yMinimum(), 'g', 12)
@@ -143,8 +143,41 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
   styleFile.write(minZoom.toStdString().c_str());
   QString maxZoom = "\"maxZoom\": "+  QString::number(mMaxZoom) +", \r\n";
   styleFile.write(maxZoom.toStdString().c_str());
-  QString tiles = "\"tiles\": [\"http://localhost:6163/igs/rest/mrms/tile/"+ mapName +"/{z}/{y}/{x}?type=pbf\"] \r\n } \r\n";
+  QString tiles = "\"tiles\": [\"http://localhost:6163/igs/rest/mrms/tile/"+ mapName +"/{z}/{y}/{x}?type=pbf\"] \r\n }, \r\n";
   styleFile.write(tiles.toStdString().c_str());
+
+  styleFile.write("\"layers\":[");
+  //for ( const Layer &layer : std::as_const( mLayers ) )
+  for (int i = 0; i < mLayers.size(); i++)
+  {
+    Layer layer = mLayers[i];
+    QgsVectorLayer *vl = layer.layer();
+    QString layerid = "{ \r\n \"id\": \" " + layer.layer()->name() + "\",\r\n";
+    QString layermin = "\"minzoom\":" + QString::number(mMinZoom) + ",\r\n";
+    QString layermax = "\"maxzoom\":" + QString::number(mMaxZoom) + ",\r\n";
+    QString layersource = "\"source\": \"" + mapName + "\",  \r\n";
+    QString layersourcelayer = "\"source-layer\": \"" + layer.layer()->name() + "\", \r\n";
+    styleFile.write(layerid.toStdString().c_str());
+    styleFile.write(layermin.toStdString().c_str());
+    styleFile.write(layermax.toStdString().c_str());
+    styleFile.write(layersource.toStdString().c_str());
+    styleFile.write(layersourcelayer.toStdString().c_str());
+    QString layertype;
+    if (vl->geometryType() == QgsWkbTypes::GeometryType::PointGeometry) {
+        layertype = "\"type\": \"circle\" \r\n";
+    } else if (vl->geometryType() == QgsWkbTypes::GeometryType::LineGeometry) {
+        layertype = "\"type\": \"line\" \r\n";
+    } else if (vl->geometryType() == QgsWkbTypes::GeometryType::PolygonGeometry) {
+        layertype = "\"type\": \"polygon\" \r\n";
+    }
+    styleFile.write(layertype.toStdString().c_str());
+    if (i < mLayers.size() - 1) {
+        styleFile.write("}, \r\n");
+    } else {
+        styleFile.write("} \r\n");
+    }
+  }
+  styleFile.write("]");
   styleFile.write("}\r\n }");
   styleFile.close();
   //-------------------------------------------------------------------------------
