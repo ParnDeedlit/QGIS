@@ -5,6 +5,7 @@
 
 #include <QString>
 #include <QFileInfoList>
+#include <QList>
 
 #include "odatadefine.h"
 #include "odatalayer.h"
@@ -20,7 +21,7 @@ public:
 
 public:
     Map* initMap(QFileInfoList list);
-    vector<FileGroup*> checkValidGroup(QFileInfoList list);
+    QList<FileGroup*> checkValidGroup(QFileInfoList list);
 
     void parseMap(Map *map);
     bool parseMapMataData(Map *map);
@@ -30,8 +31,8 @@ public:
     void parseFileAttrbution(File *attr);
     void parseFileGeometry(File *geom);
 
-    vector<Layer*> getLayers(FileGroup group);
-    void releaseLayers(vector<Layer*> layers);
+    QList<Layer*> getLayers(FileGroup group);
+    void releaseLayers(QList<Layer*> layers);
 private:
     void fixLayer(File *layer);
 };

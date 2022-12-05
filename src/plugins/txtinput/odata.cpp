@@ -194,8 +194,8 @@ Map* ODATA::initMap(QFileInfoList list) {
     return map;
 }
 
-std::vector<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
-    std::vector<FileGroup*> filegroup;
+QList<FileGroup*> ODATA::checkValidGroup(QFileInfoList list) {
+    QList<FileGroup*> filegroup;
     int size = list.count();
     std::unordered_map<QString, FileGroup*> groupMap;
 
@@ -350,7 +350,7 @@ bool ODATA::parseMapMataData(Map *map) {
 }
 
 void ODATA::parseFileGroups(Map *map) {
-    vector<FileGroup*> *groups = &(map->groups);
+    QList<FileGroup*> *groups = &(map->groups);
     if (nullptr == groups) return;
     int count = groups->size();
     for (int i = 0; i < count; i++) {

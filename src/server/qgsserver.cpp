@@ -20,7 +20,10 @@
 
 //for CMAKE_INSTALL_PREFIX
 #include "qgsconfig.h"
-#include "qgsversion.h"
+#ifndef QGSVERSION
+// #include "qgsversion.h"
+#define QGSVERSION "qgis_zhanhuan_3_27_00"
+#endif
 #include "qgsserver.h"
 #include "qgsauthmanager.h"
 #include "qgscapabilitiescache.h"

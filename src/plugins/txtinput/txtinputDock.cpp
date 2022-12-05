@@ -48,16 +48,6 @@ void txtinputDock::clear() {
 }
 
 void txtinputDock::makeJson() {
-    QString dsurl("url=/home/parndeedlit/Documents/西安包五/mbtiles/test_json.mbtiles");
-    QgsDataSourceUri uri(dsurl);
-    QString url = uri.param("url");
-    printf("mapgis json %s \r\n", url.toStdString().c_str());
-    QRegularExpression re_a("\\.mbtiles");
-    QString json = url.replace(re_a, ".json");
-    printf("mapgis json %s \r\n", json.toStdString().c_str());
-    QFile jsonFile(json);
-    jsonFile.open(QIODevice::ReadWrite);
-    jsonFile.write("test");
 }
 
 PGconn* txtinputDock::tryConnectPostgis() {
@@ -131,7 +121,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         odata.version = version;
         Map* map = odata.initMap(nodefiles);
         odata.parseMap(map);
-        std::vector<FileGroup*> valids =  map->groups;
+        QList<FileGroup*> valids =  map->groups;
         int layercount = valids.size();
         QString count = QString::number(layercount);
         tablemodel->setItem(i, 2, new QStandardItem(count));

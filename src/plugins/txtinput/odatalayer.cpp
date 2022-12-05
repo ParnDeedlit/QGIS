@@ -1563,8 +1563,8 @@ void Layer::writeToPostgis(PGconn *conn, int batchcount) {
                     values += value;
                     sql = table + values;
                     PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//                    printf(sql.toStdString().c_str());
-//                    printf("1 \r\n");
+                    /*printf(sql.toStdString().c_str());
+                    printf("1 \r\n");*/
                 } else {
                     value += ", ";
                     values += value;
@@ -1575,8 +1575,8 @@ void Layer::writeToPostgis(PGconn *conn, int batchcount) {
                 values += value;
                 sql = table + values;
                 PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//                printf(sql.toStdString().c_str());
-//                printf("2 \r\n");
+                /*printf(sql.toStdString().c_str());
+                printf("2 \r\n");*/
                 batchindex = 0;
                 table = "";
                 values = "";
@@ -1586,8 +1586,8 @@ void Layer::writeToPostgis(PGconn *conn, int batchcount) {
                     values += value;
                     sql = table + values;
                     PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//                    printf(sql.toStdString().c_str());
-//                    printf("3 \r\n");
+                    /*printf(sql.toStdString().c_str());
+                    printf("3 \r\n");*/
                 } else {
                     value += ", ";
                     values += value;

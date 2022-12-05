@@ -71,25 +71,28 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
 
   QString sourceType = dsUri.param( QStringLiteral( "type" ) );
   QString sourcePath = dsUri.param( QStringLiteral( "url" ) );
-
+  qDebug() << sourcePath;
+  QString replaceJson(sourcePath);
+  QString replaceMeta(sourcePath);
+  QString replaceStyle(sourcePath);
   //-------------------------------------------------------------------------------
   QgsCoordinateTransform ct( mRootTileMatrix.crs(), QgsCoordinateReferenceSystem( "EPSG:4326" ), mTransformContext );
   ct.setBallparkTransformsAreAppropriate( true );
   QgsRectangle tileboundsExtent = mExtent;
   QgsRectangle wgsExtent = ct.transform( tileboundsExtent );
 
-  QRegularExpression re_mbtile("\\.mbtiles");
-  QString json = dsUri.param( QStringLiteral( "url" ) ).replace(re_mbtile, ".json");
+  QRegularExpression re_mbtile("\.mbtiles");
+  QString json = replaceJson.replace(re_mbtile, ".json");
   QFile jsonFile(json);
   jsonFile.open(QIODevice::ReadWrite);
 
-  QString x = "{\r\n \"centerX\":" + QString::number(mExtent.center().x(), 'g', 12) + ",\r\n";
+  QString x = "{\r\n \"centerX\":" + QString::number(wgsExtent.center().x(), 'g', 12) + ",\r\n";
   jsonFile.write(x.toStdString().c_str());
-  QString y = "\"centerY\":" + QString::number(mExtent.center().y(), 'g', 12) + ",\r\n";
+  QString y = "\"centerY\":" + QString::number(wgsExtent.center().y(), 'g', 12) + ",\r\n";
   jsonFile.write(y.toStdString().c_str());
-  QString ox = "\"originX\":" + QString::number(wgsExtent.center().x(), 'g', 12) + ",\r\n";
+  QString ox = "\"originX\":" + QString::number(mExtent.center().x(), 'g', 12) + ",\r\n";
   jsonFile.write(ox.toStdString().c_str());
-  QString oy = "\"originY\":" + QString::number(wgsExtent.center().y(), 'g', 12) + ",\r\n";
+  QString oy = "\"originY\":" + QString::number(mExtent.center().y(), 'g', 12) + ",\r\n";
   jsonFile.write(oy.toStdString().c_str());
   QString min = "\"minZoom\":" + QString::number(mMinZoom) + ",\r\n";
   jsonFile.write(min.toStdString().c_str());
@@ -97,19 +100,57 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
   jsonFile.write(max.toStdString().c_str());
   QString init = "\"initZoom\":" + QString::number((mMinZoom + mMaxZoom) / 2, 'g', 12) + ",\r\n";
   jsonFile.write(init.toStdString().c_str());
-  QString layers = "\"layers\":[] \r\n}";
+  QString styleName("NewMap");
+  QString layers = "\"layers\":[ \r\n";
   jsonFile.write(layers.toStdString().c_str());
+  for (int i = 0; i < mLayers.size(); i++)
+  {
+    Layer layer = mLayers[i];
+    QgsVectorLayer* vl = layer.layer();
+    QString layerid = "{ \r\n \"id\": \" " + layer.layer()->name() + "\",\r\n";
+    QString layermin = "\"minzoom\":" + QString::number(mMinZoom) + ",\r\n";
+    QString layermax = "\"maxzoom\":" + QString::number(mMaxZoom) + ",\r\n";
+    QString layersource = "\"source\": \"" + styleName + "\",  \r\n";
+    QString layersourcelayer = "\"source-layer\": \"" + layer.layer()->name() + "\", \r\n";
+    jsonFile.write(layerid.toStdString().c_str());
+    jsonFile.write(layermin.toStdString().c_str());
+    jsonFile.write(layermax.toStdString().c_str());
+    jsonFile.write(layersource.toStdString().c_str());
+    jsonFile.write(layersourcelayer.toStdString().c_str());
+    QString layertype;
+    if (vl->geometryType() == QgsWkbTypes::GeometryType::PointGeometry) {
+      layertype = "\"type\": \"circle\", \r\n";
+      layertype += "\"paint\": {\"circle-color\" : [\"#000000\",\"#FF0000\",\"#00FF00\",\"#0000FF\"] }\r\n";
+    }
+    else if (vl->geometryType() == QgsWkbTypes::GeometryType::LineGeometry) {
+      layertype = "\"type\": \"line\", \r\n";
+      layertype += "\"paint\": {\"line-color\" : [\"#000000\",\"#FF0000\",\"#00FF00\",\"#0000FF\"], \r\n \"line-width\" :2 }\r\n";
+    }
+    else if (vl->geometryType() == QgsWkbTypes::GeometryType::PolygonGeometry) {
+      layertype = "\"type\": \"fill\", \r\n";
+      layertype += "\"paint\": {\"fill-color\" : [\"#000000\",\"#FF0000\",\"#00FF00\",\"#0000FF\"] }\r\n";
+    }
+    jsonFile.write(layertype.toStdString().c_str());
+    if (i < mLayers.size() - 1) {
+      jsonFile.write("}, \r\n");
+    }
+    else {
+      jsonFile.write("} \r\n");
+    }
+  }
+  jsonFile.write("] \r\n");
+  jsonFile.write("} \r\n");
   jsonFile.close();
   //-------------------------------------------------------------------------------
-  QString meta = dsUri.param( QStringLiteral( "url" ) ).replace(re_mbtile, "_metadata.json");
+  QString meta = replaceMeta.replace(re_mbtile, "_metadata.json");
   QFile meatFile(meta);
   meatFile.open(QIODevice::ReadWrite);
   QString proj = "{\r\n \"projType\": 0 \r\n}";
   meatFile.write(proj.toStdString().c_str());
   meatFile.close();
   //-------------------------------------------------------------------------------
-  QString style = dsUri.param( QStringLiteral( "url" ) ).replace(re_mbtile, "_style.json");
-  QRegularExpression re_mapname("[/|\\]([\\w\u4E00-\u9FA5A-Za-z0-9_、]+)\\.mbtiles");
+  QString style = replaceStyle.replace(re_mbtile, "_style.json");
+  QRegularExpression re_mapname("([\\w\u4E00-\u9FA5A-Za-z0-9_]+)\.mbtiles");
   QRegularExpressionMatch match_a = re_mapname.match(dsUri.param( QStringLiteral( "url" ) ));
   QString mapName("NewMap");
   if(match_a.hasMatch() && match_a.capturedLength() >= 1) {
@@ -143,9 +184,9 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
   styleFile.write(minZoom.toStdString().c_str());
   QString maxZoom = "\"maxZoom\": "+  QString::number(mMaxZoom) +", \r\n";
   styleFile.write(maxZoom.toStdString().c_str());
-  QString tiles = "\"tiles\": [\"http://localhost:6163/igs/rest/mrms/tile/"+ mapName +"/{z}/{y}/{x}?type=pbf\"] \r\n }, \r\n";
+  QString tiles = "\"tiles\": [\"http://localhost:6163/igs/rest/mrms/tile/"+ mapName +"/{z}/{y}/{x}?type=pbf\"] \r\n } \r\n";
   styleFile.write(tiles.toStdString().c_str());
-
+  styleFile.write("},\r\n ");
   styleFile.write("\"layers\":[");
   //for ( const Layer &layer : std::as_const( mLayers ) )
   for (int i = 0; i < mLayers.size(); i++)
@@ -168,7 +209,7 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
     } else if (vl->geometryType() == QgsWkbTypes::GeometryType::LineGeometry) {
         layertype = "\"type\": \"line\" \r\n";
     } else if (vl->geometryType() == QgsWkbTypes::GeometryType::PolygonGeometry) {
-        layertype = "\"type\": \"polygon\" \r\n";
+        layertype = "\"type\": \"fill\" \r\n";
     }
     styleFile.write(layertype.toStdString().c_str());
     if (i < mLayers.size() - 1) {
@@ -178,7 +219,7 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
     }
   }
   styleFile.write("]");
-  styleFile.write("}\r\n }");
+  styleFile.write("\r\n }");
   styleFile.close();
   //-------------------------------------------------------------------------------
 

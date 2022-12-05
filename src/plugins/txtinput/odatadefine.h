@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <QString>
+#include <QList>
 
 using namespace std;
 
@@ -91,7 +92,7 @@ public:
 class Map {
 public:
     MapMataData metadata;
-    vector<FileGroup*> groups;
+    QList<FileGroup*> groups;
 };
 
 enum LayerType {
