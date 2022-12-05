@@ -11,7 +11,7 @@ REM *   This program is free software; you can redistribute it and/or modify  *
 REM *   it under the terms of the GNU General Public License as published by  *
 REM *   the Free Software Foundation; either version 2 of the License, or     *
 REM *   (at your option) any later version.                                   *
-REM *                                                                         *
+REM *    package-nightly.cmd 2.99.0 1 qgis-dev x86_64                                                           
 REM ***************************************************************************
 
 setlocal enabledelayedexpansion
@@ -106,12 +106,13 @@ touch %SRCDIR%\CMakeLists.txt
 
 echo CMAKE: %DATE% %TIME%
 
-if "%CMAKEGEN%"=="" set CMAKEGEN=Ninja
+@REM if "%CMAKEGEN%"=="" set CMAKEGEN=Ninja
+if "%CMAKEGEN%"=="" set CMAKEGEN="Visual Studio 17 2022"
 if "%OSGEO4W_CXXFLAGS%"=="" set OSGEO4W_CXXFLAGS=/MD /Z7 /MP /Od /D NDEBUG
 
 for %%i in (%PYTHONHOME%) do set PYVER=%%~ni
 
-cmake -G "%CMAKEGEN%" ^
+cmake -G %CMAKEGEN% ^
 	-D CMAKE_CXX_COMPILER="%CXX:\=/%" ^
 	-D CMAKE_C_COMPILER="%CC:\=/%" ^
 	-D CMAKE_LINKER="%CMAKE_COMPILER_PATH:\=/%/link.exe" ^
@@ -134,10 +135,10 @@ cmake -G "%CMAKEGEN%" ^
 	-D CMAKE_BUILD_TYPE=%BUILDCONF% ^
 	-D CMAKE_CONFIGURATION_TYPES=%BUILDCONF% ^
 	-D SETUPAPI_LIBRARY="%SETUPAPI_LIBRARY%" ^
-	-D PROJ_LIBRARY=%O4W_ROOT%/apps/proj-dev/lib/proj.lib ^
-	-D PROJ_INCLUDE_DIR=%O4W_ROOT%/apps/proj-dev/include ^
-	-D GDAL_LIBRARY=%O4W_ROOT%/apps/gdal-dev/lib/gdal_i.lib ^
-	-D GDAL_INCLUDE_DIR=%O4W_ROOT%/apps/gdal-dev/include ^
+	-D PROJ_LIBRARY=%O4W_ROOT%/lib/proj.lib ^
+	-D PROJ_INCLUDE_DIR=%O4W_ROOT%/include ^
+	-D GDAL_LIBRARY=%O4W_ROOT%/lib/gdal_i.lib ^
+	-D GDAL_INCLUDE_DIR=%O4W_ROOT%/include ^
 	-D GEOS_LIBRARY=%O4W_ROOT%/lib/geos_c.lib ^
 	-D SQLITE3_LIBRARY=%O4W_ROOT%/lib/sqlite3_i.lib ^
 	-D SPATIALITE_LIBRARY=%O4W_ROOT%/lib/spatialite_i.lib ^

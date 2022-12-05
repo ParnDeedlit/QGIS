@@ -32,7 +32,7 @@ my $releasename;
 my $shortname = "qgis";
 my $version;
 my $binary;
-my $root = "http://download.osgeo.org/osgeo4w";
+my $root = "http://download.osgeo.org/osgeo4w/v2";
 my $ininame = "setup.ini";
 my $arch = "x86_64";
 my $signwith;

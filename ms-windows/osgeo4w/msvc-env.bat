@@ -18,12 +18,32 @@ if not "%PROGRAMFILES(X86)%"=="" set PF86=%PROGRAMFILES(X86)%
 if "%PF86%"=="" set PF86=%PROGRAMFILES%
 if "%PF86%"=="" (echo PROGRAMFILES not set & goto error)
 
-if "%VCSDK%"=="" set VCSDK=10.0.14393.0
+if not "%PROGRAMFILES%"=="" set PF=%PROGRAMFILES%
+if "%PF%"=="" set PF=%PROGRAMFILES%
+if "%PF%"=="" (echo PROGRAMFILES not set & goto error)
+
+@REM if "%VCSDK%"=="" set VCSDK=10.0.14393.0
+@REM if "%VCSDK%"=="" set VCSDK=10.0.18362.0
+@REM if "%VCSDK%"=="" set VCSDK=10.0.17763.0
+if "%VCSDK%"=="" set VCSDK=10.0.22000.0
 
 set ARCH=%1
 if "%ARCH%"=="x86" goto x86
 if "%ARCH%"=="x86_64" goto x86_64
 goto usage
+
+@REM :x86
+@REM set VCARCH=x86
+@REM set CMAKE_COMPILER_PATH=%PF86%\Microsoft Visual Studio 14.0\VC\bin
+@REM set DBGHLP_PATH=%PF86%\Microsoft Visual Studio 14.0\Common7\IDE\Remote Debugger\x86
+@REM set SETUPAPI_LIBRARY=%PF86%\Windows Kits\10\Lib\%VCSDK%\um\x86\SetupAPI.Lib
+@REM goto archset
+
+@REM :x86_64
+@REM set VCARCH=amd64
+@REM set CMAKE_COMPILER_PATH=%PF86%\Microsoft Visual Studio 14.0\VC\bin\amd64
+@REM set DBGHLP_PATH=%PF86%\Microsoft Visual Studio 14.0\Common7\IDE\Remote Debugger\x64
+@REM set SETUPAPI_LIBRARY=%PF86%\Windows Kits\10\Lib\%VCSDK%\um\x64\SetupAPI.Lib
 
 :x86
 set VCARCH=x86
@@ -34,9 +54,17 @@ goto archset
 
 :x86_64
 set VCARCH=amd64
-set CMAKE_COMPILER_PATH=%PF86%\Microsoft Visual Studio 14.0\VC\bin\amd64
-set DBGHLP_PATH=%PF86%\Microsoft Visual Studio 14.0\Common7\IDE\Remote Debugger\x64
+set CMAKE_COMPILER_PATH=%PF%\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.34.31933\bin\Hostx64\x64
+set DBGHLP_PATH=%PF%\Microsoft Visual Studio\2022\Community\Common7\IDE\Remote Debugger\x64
 set SETUPAPI_LIBRARY=%PF86%\Windows Kits\10\Lib\%VCSDK%\um\x64\SetupAPI.Lib
+
+@REM :x86_64
+@REM set VCARCH=amd64
+@REM set CMAKE_COMPILER_PATH=%PF86%\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64
+@REM set DBGHLP_PATH=%PF86%\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Remote Debugger\x64
+@REM set SETUPAPI_LIBRARY=%PF86%\Windows Kits\10\Lib\%VCSDK%\um\x64\SetupAPI.Lib
+
+@REM echo %SETUPAPI_LIBRARY%
 
 :archset
 if not exist "%SETUPAPI_LIBRARY%" (echo SETUPAPI_LIBRARY not found & goto error)
@@ -56,10 +84,11 @@ call "%OSGEO4W_ROOT%\bin\o4w_env.bat"
 call "%OSGEO4W_ROOT%\bin\py3_env.bat"
 call "%OSGEO4W_ROOT%\bin\qt5_env.bat"
 
-set VS140COMNTOOLS=%PF86%\Microsoft Visual Studio 14.0\Common7\Tools\
-call "%PF86%\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %VCARCH%
+call "%PF%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" %VCARCH%
+@REM call "%PF86%\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %VCARCH%
+@REM call "%PF86%\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %VCARCH%
 
-path %path%;%PF86%\Microsoft Visual Studio 14.0\VC\bin
+@REM path %path%;%PF86%\Microsoft Visual Studio 14.0\VC\bin
 
 set GRASS7=
 if exist %OSGEO4W_ROOT%\bin\grass74.bat set GRASS7=%OSGEO4W_ROOT%\bin\grass74.bat
