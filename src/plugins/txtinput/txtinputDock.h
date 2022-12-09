@@ -2,10 +2,11 @@
 #define TXTINPUTDOCK_H
 
 #include <stdio.h>
+#include <sqlite3.h>
 
 #include "qgsdockwidget.h"
-
 #include "txtexporttopostgis.h"
+#include "geopackage.h"
 #include "odata.h"
 
 #include "ui_txtinputDock.h"
@@ -29,25 +30,33 @@ private slots:
 //    void on_passwordEdit_textChanged(QString passwordstr);
     void on_executeButton_clicked();
     void on_selectDirctionButton_clicked();
+    void on_selectGeopackageDirctionButton_clicked();
 
     void on_deleteButton_clicked();
     void on_createIndexButton_clicked();
 
     void on_radioPostgis_clicked();
-    void on_radioGeojson_clicked();
+    void on_radioGeopackage_clicked();
 private:
     QgisInterface *qgsInterface = nullptr;
     TxtExportToPostgis *txtExport = nullptr;
+    GeoPackageHelper *geoPackage = nullptr;
+
     QString host;
     QString port;
     QString database;
     QString username;
     QString password;
 
+    QString geopackageuri;
+    OutputFormat outputFormat;
+
     vector<Map*> maps;
 
     PGconn* tryConnectPostgis();
+    sqlite3* tryConnectGeopackage();
 
+    void initOutput();
     void initProcess();
     void clear();
 

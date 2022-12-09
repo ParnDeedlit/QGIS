@@ -24,11 +24,20 @@ txtinputDock::txtinputDock(QgisInterface *qIface, QWidget *parent)
     // hide the fix-related stuff, needs more work
     qgsInterface = qIface;
     txtExport = new TxtExportToPostgis();
+    geoPackage = new GeoPackageHelper();
 }
 
 txtinputDock::~txtinputDock()
 {
 
+}
+
+void txtinputDock::initOutput() {
+    if(radioPostgis->isChecked()) {
+        outputFormat = OutputFormat::PostGIS;
+    } else if (radioGeopackage->isChecked()) {
+        outputFormat = OutputFormat::GeoPackage;
+    }
 }
 
 void txtinputDock::initProcess() {
@@ -73,12 +82,33 @@ PGconn* txtinputDock::tryConnectPostgis() {
     return txtExport->getConnection();
 }
 
+sqlite3* txtinputDock::tryConnectGeopackage() {
+    geoPackage->releaseConnection();
+    if (geoPackage->getConnection() == nullptr) {
+        geoPackage->setConnection(geopackageuri);
+    }
+    return geoPackage->getConnection();
+}
+
 void txtinputDock::on_radioPostgis_clicked() {
     tabOutput->setCurrentIndex(0);
 }
 
-void txtinputDock::on_radioGeojson_clicked() {
+void txtinputDock::on_radioGeopackage_clicked() {
     tabOutput->setCurrentIndex(1);
+}
+
+void txtinputDock::on_selectGeopackageDirctionButton_clicked() {
+    // QString dir = QFileDialog::getExistingDirectory(this, "选择文件夹");
+    QString db = QFileDialog::getSaveFileName(this, "保存文件", "本地数据库.gpkg", "(*.gpkg)");
+    geopackageDirectoryEdit->setText(db);
+
+    geopackageuri = db;
+
+    geoPackage->create_gpkg(db);
+    geoPackage->create_gpkg_contents();
+    geoPackage->create_gpkg_spatial_ref_sys();
+    geoPackage->create_gpkg_geometry_columns();
 }
 
 void txtinputDock::on_selectDirctionButton_clicked() {
@@ -92,6 +122,12 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         version = OdataVersion::ODATA_2_0;
     } else if (radioNewEntity->isChecked()) {
         version = OdataVersion::ENTITY_1_0;
+    }
+
+    if(radioPostgis->isChecked()) {
+        outputFormat = OutputFormat::PostGIS;
+    } else if (radioGeopackage->isChecked()) {
+        outputFormat = OutputFormat::GeoPackage;
     }
 
     QString dir = QFileDialog::getExistingDirectory(this, "选择文件夹");
@@ -137,6 +173,7 @@ void txtinputDock::on_selectDirctionButton_clicked() {
         tablemodel->setItem(i, 2, new QStandardItem(count));
         //-------------------------------Metadata-------------------------------------
         map->metadata.version = version;
+        map->metadata.outputFormat = outputFormat;
         metamodel->setItem(i, 0, new QStandardItem(dirinfos[i].name));
         metamodel->setItem(i, 1, new QStandardItem(QString::number(map->metadata.a)));
         metamodel->setItem(i, 2, new QStandardItem(QString::number(map->metadata.e)));
@@ -179,6 +216,7 @@ void txtinputDock::on_deleteButton_clicked() {
             Layer *layer_area = new Layer;
             Layer *layer_anno = new Layer;
             QString m = filegroup->matadata.layername;
+
             layer_point->setFileGroup(*filegroup)
                     ->setLayerType(LayerType::Point)
                     ->update()
@@ -201,10 +239,12 @@ void txtinputDock::on_deleteButton_clicked() {
 
 void txtinputDock::on_executeButton_clicked() {
     PGconn *conn = tryConnectPostgis();
+    sqlite3 *connSqlite = tryConnectGeopackage();
     int map_count = maps.size();
     int layer_percent = 0;
     int layer_step = 25;
     int total_percent = 0;
+    initOutput();
     for (int index = 0; index < map_count; index++) {
         Map* map = maps[index];
         int count = map->groups.size();
@@ -214,52 +254,101 @@ void txtinputDock::on_executeButton_clicked() {
             if (meta.name.compare("") == 0) {
                 meta = filegroup->geometry;
             }
-            if(meta.code.compare("280000") == 0 || meta.code.compare("27000000") == 0) {
-                Layer *layer_anno = new Layer;
-                layer_anno->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Anno)
-                        ->update()
-                        ->excutePostgis(conn);
-                delete layer_anno;
-                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
-                layerProgressBar->setValue(layer_percent);
-            } else {
-                Layer *layer_point = new Layer;
-                Layer *layer_line = new Layer;
-                Layer *layer_area = new Layer;
-                layer_point->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Point)
-                        ->update()
-                        ->excutePostgis(conn);
+            if (outputFormat == OutputFormat::PostGIS) {
+                if(meta.code.compare("280000") == 0 || meta.code.compare("27000000") == 0) {
+                    Layer *layer_anno = new Layer;
+                    layer_anno->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Anno)
+                            ->update()
+                            ->excutePostgis(conn);
+                    delete layer_anno;
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
+                } else {
+                    Layer *layer_point = new Layer;
+                    Layer *layer_line = new Layer;
+                    Layer *layer_area = new Layer;
+                    layer_point->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Point)
+                            ->update()
+                            ->excutePostgis(conn);
 
-                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
-                layerProgressBar->setValue(layer_percent);
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
 
-                layer_line->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Line)
-                        ->update()
-                        ->excutePostgis(conn);
+                    layer_line->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Line)
+                            ->update()
+                            ->excutePostgis(conn);
 
-                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
-                layerProgressBar->setValue(layer_percent);
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
 
-                layer_area->setFileGroup(*filegroup)
-                        ->setMapMetadata(map->metadata)
-                        ->setLayerType(LayerType::Area)
-                        ->update()
-                        ->excutePostgis(conn);
+                    layer_area->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Area)
+                            ->update()
+                            ->excutePostgis(conn);
 
-                layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
-                layerProgressBar->setValue(layer_percent);
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
 
-                delete layer_point;
-                delete layer_line;
-                delete layer_area;
+                    delete layer_point;
+                    delete layer_line;
+                    delete layer_area;
+                }
+            } else if (outputFormat == OutputFormat::GeoPackage) {
+                if(meta.code.compare("280000") == 0 || meta.code.compare("27000000") == 0) {
+                    Layer *layer_anno = new Layer;
+                    layer_anno->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Anno)
+                            ->update()
+                            ->excuteGeopackage(connSqlite);
+                    delete layer_anno;
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
+                } else {
+                    Layer *layer_point = new Layer;
+                    Layer *layer_line = new Layer;
+                    Layer *layer_area = new Layer;
+                    layer_point->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Point)
+                            ->update()
+                            ->excuteGeopackage(connSqlite);
+
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
+
+                    layer_line->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Line)
+                            ->update()
+                            ->excuteGeopackage(connSqlite);
+
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
+
+                    layer_area->setFileGroup(*filegroup)
+                            ->setMapMetadata(map->metadata)
+                            ->setLayerType(LayerType::Area)
+                            ->update()
+                            ->excuteGeopackage(connSqlite);
+
+                    layer_percent = layer_percent + layer_step > 100 ? 0 : layer_percent + layer_step;
+                    layerProgressBar->setValue(layer_percent);
+
+                    delete layer_point;
+                    delete layer_line;
+                    delete layer_area;
+                }
             }
         }
+
         total_percent = 100 * (index + 1) / map_count;
         totalProgressBar->setValue(total_percent);
     }

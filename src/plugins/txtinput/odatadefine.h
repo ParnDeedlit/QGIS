@@ -56,7 +56,7 @@ enum ProjUnit {
 
 enum OutputFormat {
     PostGIS = 0,
-    Geojson = 1
+    GeoPackage = 1
 };
 
 class MapMataData {

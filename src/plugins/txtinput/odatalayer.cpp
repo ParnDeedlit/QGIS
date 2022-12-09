@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+#include <spatialite/gaiageo.h>
+#include <spatialite.h>
+
 #include <QString>
 #include <QFile>
 #include <QTextStream>
@@ -1010,6 +1013,25 @@ QString Layer::fieldsToColumn() {
     return fs;
 }
 
+QString Layer::fieldsToColumnBySqlite() {
+    QString fs("id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL");
+    int count = fields.size();
+    for (int i = 0; i < count; i++) {
+        ODataAttributeMeta field = fields[i];
+        fs = fs + ", " + field.fieldname;
+        QString f_item(" ");
+        if (field.fieldtype.compare("string") == 0 ) {
+            f_item = f_item + "TEXT(" + QString::number(field.fieldlength) + ")";
+        } else if (field.fieldtype.compare("int") == 0 ) {
+            f_item = f_item + "INTEGER";
+        } else if (field.fieldtype.compare("double") == 0 ) {
+            f_item = f_item + "DOUBLE";
+        }
+        fs += f_item;
+    }
+    return fs;
+}
+
 QString Layer::typeToColumn() {
     QString fs;
     switch(type) {
@@ -1065,8 +1087,302 @@ void Layer::checkPostgisHasExist(PGconn *conn) {
         + ",geom geometry"
         +  ");";
     printf(sql.toStdString().c_str());
-    printf("\r\n");
+    printf("postgis \r\n");
     PGresult *res = PQexec(conn, sql.toStdString().c_str());
+}
+
+
+void Layer::excuteGeopackage(sqlite3 *conn) {
+    checkGeopackageHasExist(conn);
+    readFromFile();
+    writeToGeopackage(conn);
+}
+void Layer::deleteGeopackageHasExist(sqlite3 *conn) {
+
+}
+
+void Layer::checkGeopackageHasExist(sqlite3 *conn){
+    QString geometryType;
+    char *err_msg = nullptr;
+    switch(type) {
+        case LayerType::Point:
+        case LayerType::Anno:
+            geometryType = "POINT";
+            break;
+        case LayerType::Line:
+            geometryType = "LINESTRING";
+            break;
+        case LayerType::Area:
+            geometryType = "POLYGON";
+            break;
+    }
+
+    QString sql = "CREATE TABLE IF NOT EXISTS "
+        + uri
+        + " ("
+        + fieldsToColumnBySqlite()
+        + ",geom " + geometryType
+        +  ");";
+    // printf(sql.toStdString().c_str());
+    // printf("\r\n");
+    sqlite3_exec(conn, sql.toStdString().c_str(), 0, 0, &err_msg);
+
+    QString insert_4326("INSERT INTO gpkg_contents (table_name, data_type, identifier, srs_id) ");
+    QString values("VALUES('" + uri + "',");
+    QString v1("'features', ");
+    QString v2("'" + uri + "',");
+    QString v3("4326);");
+    QString all = insert_4326 + values + v1 + v2 + v3;
+    sqlite3_exec(conn, all.toStdString().c_str(), 0, 0, &err_msg);
+
+    QString insert_cols("INSERT INTO gpkg_geometry_columns (table_name, column_name, geometry_type_name, srs_id, z, m) ");
+    QString table("VALUES('" + uri + "',");
+    QString geom = "'geom', '" + geometryType + "', 4326, 0, 0);";
+    QString sql_col = insert_cols + table + geom;
+    sqlite3_exec(conn, sql_col.toStdString().c_str(), 0, 0, &err_msg);
+}
+
+void Layer::writeToGeopackage(sqlite3 *conn, int batchcount){
+    char *err_msg = nullptr;
+    int count = features.size();
+    QString table("");
+    QString values("");
+    QString sql("");
+    int rtn;
+
+    if (count > 0 ) {
+        for (int i = 0; i < count; i++) {
+            ODataFeature feature = features[i];
+            QString table = feature.toGeoPackageTable(uri, fields);
+            QString value = feature.toGeoPackageVaules(uri, fields);
+            QString exe = table + value;
+            //printf(exe.toStdString().c_str());
+            // printf("\r\n");
+            // sqlite3_exec(conn, exe.toStdString().c_str(), 0, 0, &err_msg);
+            sqlite3_stmt *stmt = 0;
+
+            if (feature.geometry.type == FeatureType::POINT) {
+                unsigned char *blob;
+                int blob_size;
+                gaiaGeomCollPtr geo = NULL;
+                /* preparing the geometry to insert */
+                geo = gaiaAllocGeomColl();
+                geo->Srid = 4326;
+                gaiaAddPointToGeomColl (geo, feature.geometry.point.coordinates.x, feature.geometry.point.coordinates.y);
+                /* transforming this geometry into the SpatiaLite BLOB format */
+                gaiaToSpatiaLiteBlobWkb (geo, &blob, &blob_size);
+                /* we can now destroy the geometry object */
+                gaiaFreeGeomColl (geo);
+                rtn = sqlite3_prepare_v2(conn, exe.toStdString().c_str(), strlen(exe.toStdString().c_str()) + 1, &stmt, NULL);
+                rtn = sqlite3_bind_blob(stmt, 1, blob, blob_size, SQLITE_TRANSIENT);
+            } else if (feature.geometry.type == FeatureType::LINESTRING) {
+                unsigned char *blob;
+                int blob_size;
+                gaiaGeomCollPtr geo = NULL;
+                /* preparing the geometry to insert */
+                geo = gaiaAllocGeomColl();
+                geo->Srid = 4326;
+                gaiaLinestringPtr line = gaiaAddLinestringToGeomColl(geo, feature.geometry.line.coordinates.size());
+                for(int i = 0; i < feature.geometry.line.coordinates.size(); i++) {
+                   BasePoint point = feature.geometry.line.coordinates[i];
+                   gaiaLineSetPoint(line, i, point.x, point.y, 0, 0);
+                }
+
+                /* transforming this geometry into the SpatiaLite BLOB format */
+                gaiaToSpatiaLiteBlobWkb (geo, &blob, &blob_size);
+                /* we can now destroy the geometry object */
+                gaiaFreeGeomColl (geo);
+                rtn = sqlite3_prepare_v2(conn, exe.toStdString().c_str(), strlen(exe.toStdString().c_str()) + 1, &stmt, NULL);
+                rtn = sqlite3_bind_blob(stmt, 1, blob, blob_size, SQLITE_TRANSIENT);
+            } else if (feature.geometry.type == FeatureType::POLYGON) {
+                unsigned char *blob;
+                int blob_size;
+                gaiaGeomCollPtr geo = NULL;
+                /* preparing the geometry to insert */
+                geo = gaiaAllocGeomColl();
+                geo->Srid = 4326;
+                gaiaPolygonPtr area;
+                if (feature.geometry.polygon.coordinates.size() > 1) {
+                    int innersize = feature.geometry.polygon.coordinates.size() - 1;
+                    area = gaiaAddPolygonToGeomColl(geo, feature.geometry.polygon.coordinates[0].size(), innersize);
+                    gaiaRingPtr ring = area->Exterior;
+                    for(int i = 0; i < feature.geometry.polygon.coordinates[0].size(); i++) {
+                       BasePoint point = feature.geometry.polygon.coordinates[0][i];
+                       gaiaSetPoint (ring->Coords, i, point.x, point.y);
+                    }
+                    for (int j = 0; j < innersize; j++) {
+                        int innerringsize = feature.geometry.polygon.coordinates[j+1].size();
+                        ring = gaiaAddInteriorRing (area, j+1, innerringsize);
+                        for (int k =0; k < innerringsize; k++) {
+                            BasePoint point = feature.geometry.polygon.coordinates[j+1][k];
+                            gaiaSetPoint (ring->Coords, k, point.x, point.y);
+                        }
+                    }
+
+                } else if (feature.geometry.polygon.coordinates.size() > 0) {
+                    area = gaiaAddPolygonToGeomColl(geo, feature.geometry.polygon.coordinates[0].size(), 0);
+                    gaiaRingPtr ring = area->Exterior;
+                    for(int i = 0; i < feature.geometry.polygon.coordinates[0].size(); i++) {
+                       BasePoint point = feature.geometry.polygon.coordinates[0][i];
+                       gaiaSetPoint (ring->Coords, i, point.x, point.y);
+                    }
+                } else {
+                    // do nothing
+                }
+
+                /* transforming this geometry into the SpatiaLite BLOB format */
+                gaiaToSpatiaLiteBlobWkb (geo, &blob, &blob_size);
+                /* we can now destroy the geometry object */
+                gaiaFreeGeomColl (geo);
+                rtn = sqlite3_prepare_v2(conn, exe.toStdString().c_str(), strlen(exe.toStdString().c_str()) + 1, &stmt, NULL);
+                rtn = sqlite3_bind_blob(stmt, 1, blob, blob_size, SQLITE_TRANSIENT);
+            }
+
+            rtn = sqlite3_step(stmt);
+            if (rtn != SQLITE_DONE) {
+                printf("Error message: %s\n", sqlite3_errmsg(conn));
+            }
+            rtn = sqlite3_finalize(stmt);
+        }
+
+//        ODataFeature feature = features[0];
+//        QString sql = feature.toGeoPackage(uri, fields);
+//        printf(sql.toStdString().c_str());
+//        printf("\r\n");
+//        const char * exe = sql.toStdString().c_str();
+//        gaiaGeomCollPtr geo = NULL;
+//        unsigned char *blob;
+//        QString begin("BEGIN");
+//           int ret = sqlite3_exec (conn, begin.toStdString().c_str(), NULL, NULL, &err_msg);
+//           if (ret != SQLITE_OK)
+//             {
+//       /* an error occurred */
+//                 printf ("BEGIN error: %s\n", err_msg);
+//                 sqlite3_free (err_msg);
+//             }
+//        sqlite3_stmt *stmt;
+//        if (sqlite3_prepare_v2(conn,exe,strlen(exe),&stmt,nullptr) != SQLITE_OK) {
+//            if (stmt) {
+//              sqlite3_finalize(stmt);
+//              return;
+//            }
+//        }
+//        const char* str1 = "ts";
+//        for (int i = 0; i < count; i++) {
+//            ODataFeature feature = features[i];
+//            if (feature.isValid) {
+//                feature.geometry.unprojection(&mapMetadata);
+
+
+//                for(int j = 0; j < feature.properties.size(); j++) {
+//                    ODataAttribute attr = feature.properties[j];
+//                    if (attr.type.compare("string") == 0) {
+//                        const char* str = attr.value.toString().toStdString().c_str();
+
+//                        sqlite3_bind_text(stmt,j+1, str1, strlen(str1), SQLITE_TRANSIENT);
+//                        printf(" sting %d %s", j+1, str);
+//                    } else if (attr.type.compare("int") == 0) {
+//                        sqlite3_bind_int(stmt,j+1, attr.value.toInt());
+//                        printf(" int %d %d", j+1, attr.value.toInt());
+//                    } else if (attr.type.compare("double") == 0) {
+//                        sqlite3_bind_double(stmt,j+1, attr.value.toDouble());
+//                        printf(" double %d %f", j+1, attr.value.toDouble());
+//                    }
+//                }
+//               printf("\r\n ");
+//               int ret = sqlite3_step (stmt);
+//               if (ret == SQLITE_DONE || ret == SQLITE_ROW) {
+//               } else {
+//                /* an unexpected error occurred */
+//                printf ("sqlite3_step() error: %s\n", sqlite3_errmsg (conn));
+//               }
+//               sqlite3_reset(stmt);
+//               // sqlite3_clear_bindings (stmt);
+//            }
+//        }
+//        sqlite3_finalize(stmt);
+//        QString commit("COMMIT");
+//        ret = sqlite3_exec (conn, commit.toStdString().c_str(), NULL, NULL, &err_msg);
+//        if (ret != SQLITE_OK)
+//        {
+//          printf ("COMMIT error: %s\n", err_msg);
+//          sqlite3_free (err_msg);
+//        }
+
+    }
+}
+
+void Layer::writeToPostgis(PGconn *conn, int batchcount) {
+    int count = features.size();
+    printf("features all count %i \r\n", count);
+//    for (int i = 0; i < count; i++) {
+//        ODataFeature feature = features[i];
+//        if (feature.isValid) {
+//            feature.geometry.unprojection(&mapMetadata);
+//            QString sql = feature.toPostgis(uri, fields);
+//            printf(sql.toStdString().c_str());
+//            printf("\r\n");
+//            PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//        }
+//    }
+
+
+    int batchindex = 0;
+    QString table("");
+    QString values("");
+    QString sql("");
+
+    for (int i = 0; i < count; i++) {
+        ODataFeature feature = features[i];
+        if (feature.isValid) {
+            feature.geometry.unprojection(&mapMetadata);
+            QString value = feature.toPostgisVaules(uri, fields);
+            if (batchindex == 0) {
+                table = feature.toPostgisTable(uri, fields);
+                values = "";
+                if (i == count - 1 ) {
+                    value += ";";
+                    values += value;
+                    sql = table + values;
+                    PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//                    printf(sql.toStdString().c_str());
+//                    printf("1 \r\n");
+                } else {
+                    value += ", ";
+                    values += value;
+                }
+                batchindex++;
+            } else if (batchindex >= batchcount) {
+                value += ";";
+                values += value;
+                sql = table + values;
+                PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//                printf(sql.toStdString().c_str());
+//                printf("2 \r\n");
+                batchindex = 0;
+                table = "";
+                values = "";
+            } else {
+                if (i == count - 1 ) {
+                    value += ";";
+                    values += value;
+                    sql = table + values;
+                    PGresult *res = PQexec(conn, sql.toStdString().c_str());
+//                    printf(sql.toStdString().c_str());
+//                    printf("3 \r\n");
+                } else {
+                    value += ", ";
+                    values += value;
+                }
+                batchindex++;
+            }
+        }
+    }
+    values += ";";
+}
+
+void Layer::writeToGeojson(QString uri, int batchcount) {
+
 }
 
 Layer* Layer::readFromFile() {
@@ -1528,77 +1844,4 @@ Layer* Layer::readFromZbFileAnno() {
     }
     file.close();
     return this;
-}
-
-void Layer::writeToPostgis(PGconn *conn, int batchcount) {
-    int count = features.size();
-    printf("features all count %i \r\n", count);
-//    for (int i = 0; i < count; i++) {
-//        ODataFeature feature = features[i];
-//        if (feature.isValid) {
-//            feature.geometry.unprojection(&mapMetadata);
-//            QString sql = feature.toPostgis(uri, fields);
-//            printf(sql.toStdString().c_str());
-//            printf("\r\n");
-//            PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//        }
-//    }
-
-
-    int batchindex = 0;
-    QString table("");
-    QString values("");
-    QString sql("");
-
-    for (int i = 0; i < count; i++) {
-        ODataFeature feature = features[i];
-        if (feature.isValid) {
-            feature.geometry.unprojection(&mapMetadata);
-            QString value = feature.toPostgisVaules(uri, fields);
-            if (batchindex == 0) {
-                table = feature.toPostgisTable(uri, fields);
-                values = "";
-                if (i == count - 1 ) {
-                    value += ";";
-                    values += value;
-                    sql = table + values;
-                    PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//                    printf(sql.toStdString().c_str());
-//                    printf("1 \r\n");
-                } else {
-                    value += ", ";
-                    values += value;
-                }
-                batchindex++;
-            } else if (batchindex >= batchcount) {
-                value += ";";
-                values += value;
-                sql = table + values;
-                PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//                printf(sql.toStdString().c_str());
-//                printf("2 \r\n");
-                batchindex = 0;
-                table = "";
-                values = "";
-            } else {
-                if (i == count - 1 ) {
-                    value += ";";
-                    values += value;
-                    sql = table + values;
-                    PGresult *res = PQexec(conn, sql.toStdString().c_str());
-//                    printf(sql.toStdString().c_str());
-//                    printf("3 \r\n");
-                } else {
-                    value += ", ";
-                    values += value;
-                }
-                batchindex++;
-            }
-        }
-    }
-    values += ";";
-}
-
-void Layer::writeToGeojson(QString uri, int batchcount) {
-
 }

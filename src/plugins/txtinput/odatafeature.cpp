@@ -1,6 +1,9 @@
 #include "odatafeature.h"
 #include "odatadefine.h"
 
+//#include <spatialite/gaiageo.h>
+//#include <spatialite.h>
+
 #include <QString>
 #include <QRegularExpression>
 #include <QTextCodec>
@@ -88,6 +91,111 @@ QString ODataFeature::toPostgisVaules(QString tablename, vector<ODataAttributeMe
     value += " )";
 
     return value;
+}
+
+QString ODataFeature::toGeoPackage(QString tablename, vector<ODataAttributeMeta> fields) {
+    QString sql = "INSERT INTO " + tablename;
+    QString key = " ( ";
+    QString value = " VALUES (";
+
+    // attrbutes
+    int count = properties.size();
+    int meta_count = fields.size();
+    if (count == meta_count) {
+        for (int i = 0; i < count; i++) {
+            ODataAttribute attr = properties[i];
+            if (i >= count - 1) {
+                key = key + fields[i].fieldname + " ";
+            } else {
+                key = key + fields[i].fieldname + ", ";
+            }
+        }
+        for (int i = 0; i < count; i++) {
+            if (i >= count - 1) {
+                value = value + " ?);";
+            } else {
+                value = value + " ?, ";
+            }
+        }
+    }
+
+    // geometry
+    // key = key + " geom";
+    key += " )";
+    sql = sql + key + value;
+    return sql;
+}
+
+QString ODataFeature::toGeoPackageTable(QString tablename, vector<ODataAttributeMeta> fields) {
+    // INSERT INTO geotable ( the_geom, the_name ) VALUES ( ST_GeomFromEWKT('SRID=312;POINTM(-126.4 45.32 15)'), 'A Place' );
+    QString sql = "INSERT INTO " + tablename;
+    QString key = " ( ";
+    QString value = " VALUES (";
+
+    // attrbutes
+    int count = properties.size();
+    int meta_count = fields.size();
+    if (count == meta_count) {
+        for (int i = 0; i < count; i++) {
+            ODataAttribute attr = properties[i];
+            if (i >= count - 1) {
+                key = key + fields[i].fieldname + " ";
+            } else {
+                key = key + fields[i].fieldname + ", ";
+            }
+            // key = key + fields[i].fieldname + ", ";
+        }
+    }
+
+    // geometry
+    key = key + ", geom";
+    key += " )";
+    sql = sql + key + " VALUES ";
+    return sql;
+}
+
+QString ODataFeature::toGeoPackageVaules(QString tablename, vector<ODataAttributeMeta> fields) {
+    QString value = " ( ";
+
+    // attrbutes
+    int count = properties.size();
+    int meta_count = fields.size();
+    if (count == meta_count) {
+        for (int i = 0; i < count; i++) {
+            ODataAttribute attr = properties[i];
+            if (attr.type.compare("string") == 0) {
+                value = value + "'" + attr.value.toString() + "' ";
+            } else if (attr.type.compare("int") == 0) {
+                value = value + QString::number(attr.value.toInt());
+            } else if (attr.type.compare("double") == 0) {
+                value = value + QString::number(attr.value.toDouble());
+            }
+            if (i  < count - 1) {
+                value = value + ", ";
+            }
+        }
+    }
+
+    value = value + ", ?";
+    value += " );";
+
+    return value;
+}
+
+void ODataFeature::createGeoPackageGeometryBlob(unsigned char **blob, int &blob_size) {
+//    gaiaGeomCollPtr geo = NULL;
+//    /* preparing the geometry to insert */
+//    geo = gaiaAllocGeomColl();
+//    geo->Srid = 4326;
+//    gaiaAddPointToGeomColl (geo, 0, 0);
+//    /* transforming this geometry into the SpatiaLite BLOB format */
+//    gaiaToSpatiaLiteBlobWkb (geo, &(*blob), blob_size);
+//    /* we can now destroy the geometry object */
+//    gaiaFreeGeomColl (geo);
+}
+
+void ODataFeature::releaseGeoPackageGeometryBlob(unsigned char **blob, int &blob_size) {
+
 }
 
 

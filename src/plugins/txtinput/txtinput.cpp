@@ -31,8 +31,8 @@
 #include "txtinput.h"
 #include "txtinputDock.h"
 
-static const QString sName = QObject::tr( "Txt Format Input" );
-static const QString sDescription = QObject::tr( "A Plugin for convert txt format to vector layers" );
+static const QString sName = QObject::tr( "军标格式导入" );
+static const QString sDescription = QObject::tr( "将军标格式导入到数据库" );
 static const QString sCategory = QObject::tr( "Vector" );
 static const QString sPluginVersion = QObject::tr( "Version 0.1" );
 static const QgisPlugin::PluginType sPluginType = QgisPlugin::UI;

@@ -23,6 +23,13 @@ public:
     QString toPostgisTable(QString tablename, vector<ODataAttributeMeta> fields);
     QString toPostgisVaules(QString tablename, vector<ODataAttributeMeta> fields);
 
+    QString toGeoPackage(QString tablename, vector<ODataAttributeMeta> fields);
+
+    QString toGeoPackageTable(QString tablename, vector<ODataAttributeMeta> fields);
+    QString toGeoPackageVaules(QString tablename, vector<ODataAttributeMeta> fields);
+    void createGeoPackageGeometryBlob(unsigned char **blob, int &blob_size);
+    void releaseGeoPackageGeometryBlob(unsigned char **blob, int &blob_size);
+
     ODataFeature* setGeometryPoint(QString linestring, int validIndex, MapMataData *mapMatadata);
     ODataFeature* setGeometryLine(QString linestring, MapMataData *mapMatadata);
     ODataFeature* setGeometryArea(QString linestring, int ringindex, MapMataData *mapMatadata);
