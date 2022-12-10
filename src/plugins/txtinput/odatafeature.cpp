@@ -135,7 +135,7 @@ QString ODataFeature::toGeoPackageTable(QString tablename, vector<ODataAttribute
     // attrbutes
     int count = properties.size();
     int meta_count = fields.size();
-    if (count == meta_count) {
+    if (count <= meta_count) {
         for (int i = 0; i < count; i++) {
             ODataAttribute attr = properties[i];
             if (i >= count - 1) {
@@ -160,7 +160,7 @@ QString ODataFeature::toGeoPackageVaules(QString tablename, vector<ODataAttribut
     // attrbutes
     int count = properties.size();
     int meta_count = fields.size();
-    if (count == meta_count) {
+    if (count <= meta_count) {
         for (int i = 0; i < count; i++) {
             ODataAttribute attr = properties[i];
             if (attr.type.compare("string") == 0) {
