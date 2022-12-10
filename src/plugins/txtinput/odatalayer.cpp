@@ -1156,8 +1156,8 @@ void Layer::writeToGeopackage(sqlite3 *conn, int batchcount){
             QString table = feature.toGeoPackageTable(uri, fields);
             QString value = feature.toGeoPackageVaules(uri, fields);
             QString exe = table + value;
-            //printf(exe.toStdString().c_str());
-            // printf("\r\n");
+            printf(exe.toStdString().c_str());
+             printf("\r\n");
             // sqlite3_exec(conn, exe.toStdString().c_str(), 0, 0, &err_msg);
             sqlite3_stmt *stmt = 0;
 
