@@ -52,7 +52,7 @@ QString ODataFeature::toPostgisTable(QString tablename, vector<ODataAttributeMet
     // attrbutes
     int count = properties.size();
     int meta_count = fields.size();
-    if (count == meta_count) {
+    if (count <= meta_count) {
         for (int i = 0; i < count; i++) {
             ODataAttribute attr = properties[i];
             key = key + fields[i].fieldname + ", ";
@@ -73,7 +73,7 @@ QString ODataFeature::toPostgisVaules(QString tablename, vector<ODataAttributeMe
     // attrbutes
     int count = properties.size();
     int meta_count = fields.size();
-    if (count == meta_count) {
+    if (count <= meta_count) {
         for (int i = 0; i < count; i++) {
             ODataAttribute attr = properties[i];
             if (attr.type.compare("string") == 0) {
@@ -234,25 +234,27 @@ ODataFeature* ODataFeature::setPropertiesSplit(QString linestring, vector<ODataA
         return this;
     }
     for (int i = 0; i < fieldcount; i++) {
-        str = lists[i + first_index];
-        ODataAttributeMeta meta = fields[i];
-        if (meta.fieldtype == "string") {
-            ODataAttribute attr;
-            attr.type = "string";
-            attr.value = str;
-            properties.push_back(attr);
-        } else if (meta.fieldtype == "int") {
-            ODataAttribute attr;
-            attr.type = "int";
-            attr.value = str.toInt();
-            properties.push_back(attr);
-        } else if (meta.fieldtype == "double") {
-            ODataAttribute attr;
-            attr.type = "double";
-            attr.value = str.toDouble();
-            properties.push_back(attr);
+        if (i + first_index < lists.size()) {
+            str = lists[i + first_index];
+            ODataAttributeMeta meta = fields[i];
+            if (meta.fieldtype == "string") {
+                ODataAttribute attr;
+                attr.type = "string";
+                attr.value = str;
+                properties.push_back(attr);
+            } else if (meta.fieldtype == "int") {
+                ODataAttribute attr;
+                attr.type = "int";
+                attr.value = str.toInt();
+                properties.push_back(attr);
+            } else if (meta.fieldtype == "double") {
+                ODataAttribute attr;
+                attr.type = "double";
+                attr.value = str.toDouble();
+                properties.push_back(attr);
+            }
+//            printf("%d %s  \r\n", i, str.toStdString().c_str());
         }
-        // printf("%d %s  \r\n", i, str.toStdString().c_str());
     }
 
     return this;

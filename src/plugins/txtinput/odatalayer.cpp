@@ -1425,7 +1425,13 @@ Layer* Layer::readFromSxFilePoint() {
     int file_end_index = 0;
     int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1476,7 +1482,13 @@ Layer* Layer::readFromSxFileLine() {
     int file_end_index = 0;
     int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1526,7 +1538,13 @@ Layer* Layer::readFromSxFileArea() {
     int file_end_index = 0;
     int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1576,7 +1594,13 @@ Layer* Layer::readFromSxFileAnno() {
     int file_end_index = 0;
     int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1635,7 +1659,13 @@ Layer* Layer::readFromZbFilePoint() {
     int file_end_index = 0;
     int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1688,7 +1718,12 @@ Layer* Layer::readFromZbFileLine() {
     int line_cur_index_temp = 0;
     int feature_count = features.size();
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1751,7 +1786,12 @@ Layer* Layer::readFromZbFileArea() {
     int feature_count = features.size();
     OdataVersion version = mapMetadata.version;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
@@ -1816,7 +1856,12 @@ Layer* Layer::readFromZbFileAnno() {
     int file_end_index = 0;
     int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
     while(!stream.atEnd()) {
         QString line = stream.readLine();
         file_row_number++;
