@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+#include <spatialite/gaiageo.h>
+#include <spatialite.h>
+
 #include <QString>
 #include <QFile>
 #include <QTextStream>
@@ -1010,6 +1013,25 @@ QString Layer::fieldsToColumn() {
     return fs;
 }
 
+QString Layer::fieldsToColumnBySqlite() {
+    QString fs("id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL");
+    int count = fields.size();
+    for (int i = 0; i < count; i++) {
+        ODataAttributeMeta field = fields[i];
+        fs = fs + ", " + field.fieldname;
+        QString f_item(" ");
+        if (field.fieldtype.compare("string") == 0 ) {
+            f_item = f_item + "TEXT(" + QString::number(field.fieldlength) + ")";
+        } else if (field.fieldtype.compare("int") == 0 ) {
+            f_item = f_item + "INTEGER";
+        } else if (field.fieldtype.compare("double") == 0 ) {
+            f_item = f_item + "DOUBLE";
+        }
+        fs += f_item;
+    }
+    return fs;
+}
+
 QString Layer::typeToColumn() {
     QString fs;
     switch(type) {
@@ -1065,469 +1087,229 @@ void Layer::checkPostgisHasExist(PGconn *conn) {
         + ",geom geometry"
         +  ");";
     printf(sql.toStdString().c_str());
-    printf("\r\n");
+    printf("postgis \r\n");
     PGresult *res = PQexec(conn, sql.toStdString().c_str());
 }
 
-Layer* Layer::readFromFile() {
-    readFromMsFile();
-    readFromSxFile();
-    readFromZbFile();
-    return this;
+
+void Layer::excuteGeopackage(sqlite3 *conn) {
+    checkGeopackageHasExist(conn);
+    readFromFile();
+    writeToGeopackage(conn);
+}
+void Layer::deleteGeopackageHasExist(sqlite3 *conn) {
+
 }
 
-Layer* Layer::readFromMsFile() {
-    return this;
-}
-
-Layer* Layer::readFromSxFile() {
-    if (type == LayerType::Point) {
-        readFromSxFilePoint();
-    } else if (type == LayerType::Line) {
-        readFromSxFileLine();
-    } else if (type == LayerType::Area) {
-        readFromSxFileArea();
-    } else if (type == LayerType::Anno) {
-        readFromSxFileAnno();
-    }
-    return this;
-}
-
-Layer* Layer::readFromSxFilePoint() {
-    QFile file(filegroup.attrbution.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
-
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_point = false;
-    int file_start_index = 0;
-    int file_end_index = 0;
-    int file_cur_index = 0;
-
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_point) {
-            // printf("find_point %d \r\n", file_row_number);
-            // 开始 定位 "P 1000" 的开始位置
-            int count = AttributeLineStringTypeCount(line, LayerType::Point);
-            if (count >= 0) {
-                file_start_index = file_row_number;
-                file_end_index = file_start_index + count;
-                find_point = true;
-            }
-        } else if (AttributeLineStringTypeCount(line, LayerType::Line) >= 0) {
-            // 结束 定位 "P 1000" 的结束位置
-            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+void Layer::checkGeopackageHasExist(sqlite3 *conn){
+    QString geometryType;
+    char *err_msg = nullptr;
+    switch(type) {
+        case LayerType::Point:
+        case LayerType::Anno:
+            geometryType = "POINT";
             break;
-        } else {
-            file_cur_index++;
-            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
-                // 实际属性转换代码
-                ODataFeature feature;
-                feature.type = FeatureType::POINT;
-                feature.setPropertiesSplit(line, fields, file_cur_index);
-                features.push_back(feature);
-            } else {
-                // 无效行，包括属性文件前几行
-
-            }
-        }
-    }
-    file.close();
-    return this;
-}
-
-Layer* Layer::readFromSxFileLine() {
-    QFile file(filegroup.attrbution.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
-
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_point = false;
-    int file_start_index = 0;
-    int file_end_index = 0;
-    int file_cur_index = 0;
-
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_point) {
-            // printf("find_point %d \r\n", file_row_number);
-            // 开始 定位 "L 1000" 的开始位置
-            int count = AttributeLineStringTypeCount(line, LayerType::Line);
-            if (count >= 0) {
-                file_start_index = file_row_number;
-                file_end_index = file_start_index + count;
-                find_point = true;
-            }
-        } else if (AttributeLineStringTypeCount(line, LayerType::Area) >= 0) {
-            // 结束 定位 "P 1000" 的结束位置
-            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+        case LayerType::Line:
+            geometryType = "LINESTRING";
             break;
-        } else {
-            file_cur_index++;
-            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
-                // 实际属性转换代码
-                ODataFeature feature;
-                feature.setPropertiesSplit(line, fields, file_cur_index);
-                features.push_back(feature);
-            } else {
-                // 无效行，包括属性文件前几行
-
-            }
-        }
-    }
-    file.close();
-    return this;
-}
-
-Layer* Layer::readFromSxFileArea() {
-    QFile file(filegroup.attrbution.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
-
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_point = false;
-    int file_start_index = 0;
-    int file_end_index = 0;
-    int file_cur_index = 0;
-
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_point) {
-            // printf("find_point %d \r\n", file_row_number);
-            // 开始 定位 "A 1000" 的开始位置
-            int count = AttributeLineStringTypeCount(line, LayerType::Area);
-            if (count >= 0) {
-                file_start_index = file_row_number;
-                file_end_index = file_start_index + count;
-                find_point = true;
-            }
-        } else if (AttributeLineStringTypeCount(line, LayerType::Anno) >= 0) {
-            // 结束 定位 "A 1000" 的结束位置
-            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+        case LayerType::Area:
+            geometryType = "POLYGON";
             break;
-        } else {
-            file_cur_index++;
-            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
-                // 实际属性转换代码
-                ODataFeature feature;
-                feature.setPropertiesSplit(line, fields, file_cur_index);
-                features.push_back(feature);
-            } else {
-                // 无效行，包括属性文件前几行
-
-            }
-        }
     }
-    file.close();
-    return this;
+
+    QString sql = "CREATE TABLE IF NOT EXISTS "
+        + uri
+        + " ("
+        + fieldsToColumnBySqlite()
+        + ",geom " + geometryType
+        +  ");";
+    // printf(sql.toStdString().c_str());
+    // printf("\r\n");
+    sqlite3_exec(conn, sql.toStdString().c_str(), 0, 0, &err_msg);
+
+    QString insert_4326("INSERT INTO gpkg_contents (table_name, data_type, identifier, srs_id) ");
+    QString values("VALUES('" + uri + "',");
+    QString v1("'features', ");
+    QString v2("'" + uri + "',");
+    QString v3("4326);");
+    QString all = insert_4326 + values + v1 + v2 + v3;
+    sqlite3_exec(conn, all.toStdString().c_str(), 0, 0, &err_msg);
+
+    QString insert_cols("INSERT INTO gpkg_geometry_columns (table_name, column_name, geometry_type_name, srs_id, z, m) ");
+    QString table("VALUES('" + uri + "',");
+    QString geom = "'geom', '" + geometryType + "', 4326, 0, 0);";
+    QString sql_col = insert_cols + table + geom;
+    sqlite3_exec(conn, sql_col.toStdString().c_str(), 0, 0, &err_msg);
 }
 
-Layer* Layer::readFromSxFileAnno() {
-    QFile file(filegroup.attrbution.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
+void Layer::writeToGeopackage(sqlite3 *conn, int batchcount){
+    char *err_msg = nullptr;
+    int count = features.size();
+    QString table("");
+    QString values("");
+    QString sql("");
+    int rtn;
 
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_anno = false;
-    int file_start_index = 0;
-    int file_end_index = 0;
-    int file_cur_index = 0;
+    if (count > 0 ) {
+        for (int i = 0; i < count; i++) {
+            ODataFeature feature = features[i];
+            QString table = feature.toGeoPackageTable(uri, fields);
+            QString value = feature.toGeoPackageVaules(uri, fields);
+            QString exe = table + value;
+            //printf(exe.toStdString().c_str());
+            // printf("\r\n");
+            // sqlite3_exec(conn, exe.toStdString().c_str(), 0, 0, &err_msg);
+            sqlite3_stmt *stmt = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_anno) {
-            // 开始 定位 "P 1000" 的开始位置
-            int count = AttributeLineStringTypeCount(line, LayerType::Anno, mapMetadata.version);
-            if (count >= 0) {
-                file_start_index = file_row_number;
-                file_end_index = file_start_index + count;
-                find_anno = true;
-            }
-        } else {
-            file_cur_index++;
-            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
-                // 实际属性转换代码
-                ODataFeature feature;
-                feature.type = FeatureType::POINT;
-                feature.setPropertiesSplit(line, fields, file_cur_index);
-                features.push_back(feature);
-            } else {
-                // 无效行，包括属性文件前几行
-
-            }
-        }
-    }
-    file.close();
-    return this;
-}
-
-Layer* Layer::readFromZbFile() {
-    if (type == LayerType::Point) {
-        readFromZbFilePoint();
-    } else if (type == LayerType::Line) {
-        readFromZbFileLine();
-    } else if (type == LayerType::Area) {
-        readFromZbFileArea();
-    } else if (type == LayerType::Anno) {
-        readFromZbFileAnno();
-    }
-    return this;
-}
-
-Layer* Layer::readFromZbFilePoint() {
-    QFile file(filegroup.geometry.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
-
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_point = false;
-    int file_start_index = 0;
-    int file_end_index = 0;
-    int file_cur_index = 0;
-
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_point) {
-            // printf("find_point %d \r\n", file_row_number);
-            // 开始 定位 "P 1000" 的开始位置
-            int count = GeometryLineStringTypeCount(line, LayerType::Point);
-            if (count >= 0) {
-                file_start_index = file_row_number;
-                file_end_index = file_start_index + count;
-                find_point = true;
-            }
-        } else if (GeometryLineStringTypeCount(line, LayerType::Line) >= 0) {
-            // 结束 定位 "P 1000" 的结束位置
-            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
-            break;
-        } else {
-            file_cur_index++;
-            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
-                // 实际属性转换代码
-                if (file_cur_index <= features.size()) {
-                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index, &mapMetadata);
+            if (feature.geometry.type == FeatureType::POINT) {
+                unsigned char *blob;
+                int blob_size;
+                gaiaGeomCollPtr geo = NULL;
+                /* preparing the geometry to insert */
+                geo = gaiaAllocGeomColl();
+                geo->Srid = 4326;
+                gaiaAddPointToGeomColl (geo, feature.geometry.point.coordinates.x, feature.geometry.point.coordinates.y);
+                /* transforming this geometry into the SpatiaLite BLOB format */
+                gaiaToSpatiaLiteBlobWkb (geo, &blob, &blob_size);
+                /* we can now destroy the geometry object */
+                gaiaFreeGeomColl (geo);
+                rtn = sqlite3_prepare_v2(conn, exe.toStdString().c_str(), strlen(exe.toStdString().c_str()) + 1, &stmt, NULL);
+                rtn = sqlite3_bind_blob(stmt, 1, blob, blob_size, SQLITE_TRANSIENT);
+            } else if (feature.geometry.type == FeatureType::LINESTRING) {
+                unsigned char *blob;
+                int blob_size;
+                gaiaGeomCollPtr geo = NULL;
+                /* preparing the geometry to insert */
+                geo = gaiaAllocGeomColl();
+                geo->Srid = 4326;
+                gaiaLinestringPtr line = gaiaAddLinestringToGeomColl(geo, feature.geometry.line.coordinates.size());
+                for(int i = 0; i < feature.geometry.line.coordinates.size(); i++) {
+                   BasePoint point = feature.geometry.line.coordinates[i];
+                   gaiaLineSetPoint(line, i, point.x, point.y, 0, 0);
                 }
-            } else {
-                // 无效行，包括属性文件前几行
 
-            }
-        }
-    }
-    file.close();
-    return this;
-}
-
-Layer* Layer::readFromZbFileLine() {
-    QFile file(filegroup.geometry.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
-
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_line = false;
-    int line_total_size = 0;
-    int line_last_index = 0;
-    int line_cur_index = 0;
-    int line_cur_coords_size = 0;
-    int line_cur_index_temp = 0;
-    int feature_count = features.size();
-
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_line) {
-            // 开始 定位 "L 1000" 的开始位置
-            int count = GeometryLineStringTypeCount(line, LayerType::Line);
-            if (count >= 0) {
-                line_total_size = count;
-                find_line = true;
-            }
-        } else if (GeometryLineStringTypeCount(line, LayerType::Area) >= 0) {
-            // 结束 定位 "L 1000" 的结束位置
-            break;
-        } else {
-            bool findnewline = false;
-            GeometryLineCoordCount(line, line_cur_index_temp, line_cur_coords_size);
-            if (line_cur_index_temp == line_last_index + 1) {
-                line_cur_index = line_cur_index_temp;
-                findnewline = true;
-            }
-
-            if (findnewline) {
-                line_last_index = line_cur_index;
-                // printf("find index %d %d \r\n", line_cur_index, line_cur_coords_size);
-            } else {
-                // printf("readline check %d %d \r\n", line_cur_index, feature_count);
-                if (line_cur_index <= feature_count) {
-                    features[line_cur_index - 1].setGeometryLine(line, &mapMetadata);
-                    // printf("readline %d \r\n", line_cur_index);
-                }
-            }
-        }
-    }
-    file.close();
-    return this;
-}
-
-Layer* Layer::readFromZbFileArea() {
-    QFile file(filegroup.geometry.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
-
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_area = false;
-    int area_total_size = 0;
-    int area_cur_index = 0;
-    int area_last_index = 0;
-    // int area_end_index = 0;
-    int area_cur_ring_count = 0;
-    int area_cur_ring_count_temp = 0;
-    int area_cur_ring_number = 0;
-    int area_cur_ring_index = -1;
-    int area_cur_ring_coords_size = 0;
-    int area_cur_index_temp = 0;
-    int feature_count = features.size();
-    OdataVersion version = mapMetadata.version;
-
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_area) {
-            // 开始 定位 "L 1000" 的开始位置
-            int count = GeometryLineStringTypeCount(line, LayerType::Area);
-            if (count >= 0) {
-                area_total_size = count;
-                find_area = true;
-            }
-        } else {
-            bool findnewarea = false;
-            GeometryAreaRingCount(line, area_cur_index_temp, area_cur_ring_count_temp, version);
-            if (area_cur_index_temp == area_last_index + 1) {
-                area_cur_index = area_cur_index_temp;
-                area_cur_ring_count = area_cur_ring_count_temp;
-                findnewarea = true;
-            }
-
-            if (findnewarea) {
-                area_last_index = area_cur_index;
-                area_cur_ring_index = -1;
-                if (area_cur_ring_count == 0) {
-                    // 1        0.000000        0.000000          0 不做任何处理
-                    area_cur_ring_number = file_row_number;
-                    // printf("0. empty area do nothing!  \r\n");
-                } else {
-                    area_cur_ring_number = file_row_number + 1;
-                    // printf("1. valid area do loop!  \r\n");
-                }
-            } else {
-                if (file_row_number == area_cur_ring_number) {
-                    GeometryAreaCoordCount(line, area_cur_ring_coords_size);
-                    // printf("2. count area ring!  \r\n");
-                    area_cur_ring_index++;
-                } else {
-                    if (area_cur_index <= feature_count) {
-                        // printf("3. loop area ring point! %d \r\n", area_cur_index);
-                        features[area_cur_index - 1].setGeometryArea(line, area_cur_ring_index, &mapMetadata);
+                /* transforming this geometry into the SpatiaLite BLOB format */
+                gaiaToSpatiaLiteBlobWkb (geo, &blob, &blob_size);
+                /* we can now destroy the geometry object */
+                gaiaFreeGeomColl (geo);
+                rtn = sqlite3_prepare_v2(conn, exe.toStdString().c_str(), strlen(exe.toStdString().c_str()) + 1, &stmt, NULL);
+                rtn = sqlite3_bind_blob(stmt, 1, blob, blob_size, SQLITE_TRANSIENT);
+            } else if (feature.geometry.type == FeatureType::POLYGON) {
+                unsigned char *blob;
+                int blob_size;
+                gaiaGeomCollPtr geo = NULL;
+                /* preparing the geometry to insert */
+                geo = gaiaAllocGeomColl();
+                geo->Srid = 4326;
+                gaiaPolygonPtr area;
+                if (feature.geometry.polygon.coordinates.size() > 1) {
+                    int innersize = feature.geometry.polygon.coordinates.size() - 1;
+                    area = gaiaAddPolygonToGeomColl(geo, feature.geometry.polygon.coordinates[0].size(), innersize);
+                    gaiaRingPtr ring = area->Exterior;
+                    for(int i = 0; i < feature.geometry.polygon.coordinates[0].size(); i++) {
+                       BasePoint point = feature.geometry.polygon.coordinates[0][i];
+                       gaiaSetPoint (ring->Coords, i, point.x, point.y);
                     }
+                    for (int j = 0; j < innersize; j++) {
+                        int innerringsize = feature.geometry.polygon.coordinates[j+1].size();
+                        ring = gaiaAddInteriorRing (area, j+1, innerringsize);
+                        for (int k =0; k < innerringsize; k++) {
+                            BasePoint point = feature.geometry.polygon.coordinates[j+1][k];
+                            gaiaSetPoint (ring->Coords, k, point.x, point.y);
+                        }
+                    }
+
+                } else if (feature.geometry.polygon.coordinates.size() > 0) {
+                    area = gaiaAddPolygonToGeomColl(geo, feature.geometry.polygon.coordinates[0].size(), 0);
+                    gaiaRingPtr ring = area->Exterior;
+                    for(int i = 0; i < feature.geometry.polygon.coordinates[0].size(); i++) {
+                       BasePoint point = feature.geometry.polygon.coordinates[0][i];
+                       gaiaSetPoint (ring->Coords, i, point.x, point.y);
+                    }
+                } else {
+                    // do nothing
                 }
+
+                /* transforming this geometry into the SpatiaLite BLOB format */
+                gaiaToSpatiaLiteBlobWkb (geo, &blob, &blob_size);
+                /* we can now destroy the geometry object */
+                gaiaFreeGeomColl (geo);
+                rtn = sqlite3_prepare_v2(conn, exe.toStdString().c_str(), strlen(exe.toStdString().c_str()) + 1, &stmt, NULL);
+                rtn = sqlite3_bind_blob(stmt, 1, blob, blob_size, SQLITE_TRANSIENT);
             }
+
+            rtn = sqlite3_step(stmt);
+            if (rtn != SQLITE_DONE) {
+                printf("Error message: %s\n", sqlite3_errmsg(conn));
+            }
+            rtn = sqlite3_finalize(stmt);
         }
-    }
-    file.close();
-    return this;
-}
 
-Layer* Layer::readFromZbFileAnno() {
-    QFile file(filegroup.geometry.path);
-    if (!file.exists()) {
-        return this;
-    }
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return this;
-    }
+//        ODataFeature feature = features[0];
+//        QString sql = feature.toGeoPackage(uri, fields);
+//        printf(sql.toStdString().c_str());
+//        printf("\r\n");
+//        const char * exe = sql.toStdString().c_str();
+//        gaiaGeomCollPtr geo = NULL;
+//        unsigned char *blob;
+//        QString begin("BEGIN");
+//           int ret = sqlite3_exec (conn, begin.toStdString().c_str(), NULL, NULL, &err_msg);
+//           if (ret != SQLITE_OK)
+//             {
+//       /* an error occurred */
+//                 printf ("BEGIN error: %s\n", err_msg);
+//                 sqlite3_free (err_msg);
+//             }
+//        sqlite3_stmt *stmt;
+//        if (sqlite3_prepare_v2(conn,exe,strlen(exe),&stmt,nullptr) != SQLITE_OK) {
+//            if (stmt) {
+//              sqlite3_finalize(stmt);
+//              return;
+//            }
+//        }
+//        const char* str1 = "ts";
+//        for (int i = 0; i < count; i++) {
+//            ODataFeature feature = features[i];
+//            if (feature.isValid) {
+//                feature.geometry.unprojection(&mapMetadata);
 
-    QTextStream stream(&file);
-    int file_row_number = 0;
-    bool find_anno = false;
-    int file_start_index = 0;
-    int file_end_index = 0;
-    int file_cur_index = 0;
 
-    stream.setCodec(QTextCodec::codecForName("gb2312"));
-    while(!stream.atEnd()) {
-        QString line = stream.readLine();
-        file_row_number++;
-        if (!find_anno) {
-            // printf("find_point %d \r\n", file_row_number);
-            // 开始 定位 "P 1000" 的开始位置
-            int count = GeometryLineStringTypeCount(line, LayerType::Anno, mapMetadata.version);
-            if (count >= 0) {
-                file_start_index = file_row_number;
-                file_end_index = file_start_index + count;
-                find_anno = true;
-            }
-        } else {
-            file_cur_index++;
-            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
-                // 实际属性转换代码
-                if (file_cur_index <= features.size()) {
-                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index, &mapMetadata);
-                }
-            } else {
-                // 无效行，包括属性文件前几行
+//                for(int j = 0; j < feature.properties.size(); j++) {
+//                    ODataAttribute attr = feature.properties[j];
+//                    if (attr.type.compare("string") == 0) {
+//                        const char* str = attr.value.toString().toStdString().c_str();
 
-            }
-        }
+//                        sqlite3_bind_text(stmt,j+1, str1, strlen(str1), SQLITE_TRANSIENT);
+//                        printf(" sting %d %s", j+1, str);
+//                    } else if (attr.type.compare("int") == 0) {
+//                        sqlite3_bind_int(stmt,j+1, attr.value.toInt());
+//                        printf(" int %d %d", j+1, attr.value.toInt());
+//                    } else if (attr.type.compare("double") == 0) {
+//                        sqlite3_bind_double(stmt,j+1, attr.value.toDouble());
+//                        printf(" double %d %f", j+1, attr.value.toDouble());
+//                    }
+//                }
+//               printf("\r\n ");
+//               int ret = sqlite3_step (stmt);
+//               if (ret == SQLITE_DONE || ret == SQLITE_ROW) {
+//               } else {
+//                /* an unexpected error occurred */
+//                printf ("sqlite3_step() error: %s\n", sqlite3_errmsg (conn));
+//               }
+//               sqlite3_reset(stmt);
+//               // sqlite3_clear_bindings (stmt);
+//            }
+//        }
+//        sqlite3_finalize(stmt);
+//        QString commit("COMMIT");
+//        ret = sqlite3_exec (conn, commit.toStdString().c_str(), NULL, NULL, &err_msg);
+//        if (ret != SQLITE_OK)
+//        {
+//          printf ("COMMIT error: %s\n", err_msg);
+//          sqlite3_free (err_msg);
+//        }
+
     }
-    file.close();
-    return this;
 }
 
 void Layer::writeToPostgis(PGconn *conn, int batchcount) {
@@ -1601,4 +1383,510 @@ void Layer::writeToPostgis(PGconn *conn, int batchcount) {
 
 void Layer::writeToGeojson(QString uri, int batchcount) {
 
+}
+
+Layer* Layer::readFromFile() {
+    readFromMsFile();
+    readFromSxFile();
+    readFromZbFile();
+    return this;
+}
+
+Layer* Layer::readFromMsFile() {
+    return this;
+}
+
+Layer* Layer::readFromSxFile() {
+    if (type == LayerType::Point) {
+        readFromSxFilePoint();
+    } else if (type == LayerType::Line) {
+        readFromSxFileLine();
+    } else if (type == LayerType::Area) {
+        readFromSxFileArea();
+    } else if (type == LayerType::Anno) {
+        readFromSxFileAnno();
+    }
+    return this;
+}
+
+Layer* Layer::readFromSxFilePoint() {
+    QFile file(filegroup.attrbution.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_point = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_point) {
+            // printf("find_point %d \r\n", file_row_number);
+            // 开始 定位 "P 1000" 的开始位置
+            int count = AttributeLineStringTypeCount(line, LayerType::Point);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_point = true;
+            }
+        } else if (AttributeLineStringTypeCount(line, LayerType::Line) >= 0) {
+            // 结束 定位 "P 1000" 的结束位置
+            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+            break;
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                ODataFeature feature;
+                feature.type = FeatureType::POINT;
+                feature.setPropertiesSplit(line, fields, file_cur_index);
+                features.push_back(feature);
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromSxFileLine() {
+    QFile file(filegroup.attrbution.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_point = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_point) {
+            // printf("find_point %d \r\n", file_row_number);
+            // 开始 定位 "L 1000" 的开始位置
+            int count = AttributeLineStringTypeCount(line, LayerType::Line);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_point = true;
+            }
+        } else if (AttributeLineStringTypeCount(line, LayerType::Area) >= 0) {
+            // 结束 定位 "P 1000" 的结束位置
+            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+            break;
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                ODataFeature feature;
+                feature.setPropertiesSplit(line, fields, file_cur_index);
+                features.push_back(feature);
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromSxFileArea() {
+    QFile file(filegroup.attrbution.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_point = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_point) {
+            // printf("find_point %d \r\n", file_row_number);
+            // 开始 定位 "A 1000" 的开始位置
+            int count = AttributeLineStringTypeCount(line, LayerType::Area);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_point = true;
+            }
+        } else if (AttributeLineStringTypeCount(line, LayerType::Anno) >= 0) {
+            // 结束 定位 "A 1000" 的结束位置
+            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+            break;
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                ODataFeature feature;
+                feature.setPropertiesSplit(line, fields, file_cur_index);
+                features.push_back(feature);
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromSxFileAnno() {
+    QFile file(filegroup.attrbution.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_anno = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_anno) {
+            // 开始 定位 "P 1000" 的开始位置
+            int count = AttributeLineStringTypeCount(line, LayerType::Anno, mapMetadata.version);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_anno = true;
+            }
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                ODataFeature feature;
+                feature.type = FeatureType::POINT;
+                feature.setPropertiesSplit(line, fields, file_cur_index);
+                features.push_back(feature);
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromZbFile() {
+    if (type == LayerType::Point) {
+        readFromZbFilePoint();
+    } else if (type == LayerType::Line) {
+        readFromZbFileLine();
+    } else if (type == LayerType::Area) {
+        readFromZbFileArea();
+    } else if (type == LayerType::Anno) {
+        readFromZbFileAnno();
+    }
+    return this;
+}
+
+Layer* Layer::readFromZbFilePoint() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_point = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_point) {
+            // printf("find_point %d \r\n", file_row_number);
+            // 开始 定位 "P 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Point);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_point = true;
+            }
+        } else if (GeometryLineStringTypeCount(line, LayerType::Line) >= 0) {
+            // 结束 定位 "P 1000" 的结束位置
+            // printf("end_point %d %d %d \r\n", file_row_number, file_start_index, file_end_index);
+            break;
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                if (file_cur_index <= features.size()) {
+                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index, &mapMetadata);
+                }
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromZbFileLine() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_line = false;
+    int line_total_size = 0;
+    int line_last_index = 0;
+    int line_cur_index = 0;
+    int line_cur_coords_size = 0;
+    int line_cur_index_temp = 0;
+    int feature_count = features.size();
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_line) {
+            // 开始 定位 "L 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Line);
+            if (count >= 0) {
+                line_total_size = count;
+                find_line = true;
+            }
+        } else if (GeometryLineStringTypeCount(line, LayerType::Area) >= 0) {
+            // 结束 定位 "L 1000" 的结束位置
+            break;
+        } else {
+            bool findnewline = false;
+            GeometryLineCoordCount(line, line_cur_index_temp, line_cur_coords_size);
+            if (line_cur_index_temp == line_last_index + 1) {
+                line_cur_index = line_cur_index_temp;
+                findnewline = true;
+            }
+
+            if (findnewline) {
+                line_last_index = line_cur_index;
+                // printf("find index %d %d \r\n", line_cur_index, line_cur_coords_size);
+            } else {
+                // printf("readline check %d %d \r\n", line_cur_index, feature_count);
+                if (line_cur_index <= feature_count) {
+                    features[line_cur_index - 1].setGeometryLine(line, &mapMetadata);
+                    // printf("readline %d \r\n", line_cur_index);
+                }
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromZbFileArea() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_area = false;
+    int area_total_size = 0;
+    int area_cur_index = 0;
+    int area_last_index = 0;
+    // int area_end_index = 0;
+    int area_cur_ring_count = 0;
+    int area_cur_ring_count_temp = 0;
+    int area_cur_ring_number = 0;
+    int area_cur_ring_index = -1;
+    int area_cur_ring_coords_size = 0;
+    int area_cur_index_temp = 0;
+    int feature_count = features.size();
+    OdataVersion version = mapMetadata.version;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_area) {
+            // 开始 定位 "L 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Area);
+            if (count >= 0) {
+                area_total_size = count;
+                find_area = true;
+            }
+        } else {
+            bool findnewarea = false;
+            GeometryAreaRingCount(line, area_cur_index_temp, area_cur_ring_count_temp, version);
+            if (area_cur_index_temp == area_last_index + 1) {
+                area_cur_index = area_cur_index_temp;
+                area_cur_ring_count = area_cur_ring_count_temp;
+                findnewarea = true;
+            }
+
+            if (findnewarea) {
+                area_last_index = area_cur_index;
+                area_cur_ring_index = -1;
+                if (area_cur_ring_count == 0) {
+                    // 1        0.000000        0.000000          0 不做任何处理
+                    area_cur_ring_number = file_row_number;
+                    // printf("0. empty area do nothing!  \r\n");
+                } else {
+                    area_cur_ring_number = file_row_number + 1;
+                    // printf("1. valid area do loop!  \r\n");
+                }
+            } else {
+                if (file_row_number == area_cur_ring_number) {
+                    GeometryAreaCoordCount(line, area_cur_ring_coords_size);
+                    // printf("2. count area ring!  \r\n");
+                    area_cur_ring_index++;
+                } else {
+                    if (area_cur_index <= feature_count) {
+                        // printf("3. loop area ring point! %d \r\n", area_cur_index);
+                        features[area_cur_index - 1].setGeometryArea(line, area_cur_ring_index, &mapMetadata);
+                    }
+                }
+            }
+        }
+    }
+    file.close();
+    return this;
+}
+
+Layer* Layer::readFromZbFileAnno() {
+    QFile file(filegroup.geometry.path);
+    if (!file.exists()) {
+        return this;
+    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return this;
+    }
+
+    QTextStream stream(&file);
+    int file_row_number = 0;
+    bool find_anno = false;
+    int file_start_index = 0;
+    int file_end_index = 0;
+    int file_cur_index = 0;
+
+    if(mapMetadata.version == OdataVersion::ODATA_1_0) {
+        stream.setCodec(QTextCodec::codecForName("gb2312"));
+    } else if (mapMetadata.version == OdataVersion::ODATA_2_0 ||
+        mapMetadata.version == OdataVersion::ENTITY_1_0) {
+        stream.setCodec(QTextCodec::codecForName("utf-8"));
+    }
+    while(!stream.atEnd()) {
+        QString line = stream.readLine();
+        file_row_number++;
+        if (!find_anno) {
+            // printf("find_point %d \r\n", file_row_number);
+            // 开始 定位 "P 1000" 的开始位置
+            int count = GeometryLineStringTypeCount(line, LayerType::Anno, mapMetadata.version);
+            if (count >= 0) {
+                file_start_index = file_row_number;
+                file_end_index = file_start_index + count;
+                find_anno = true;
+            }
+        } else {
+            file_cur_index++;
+            if (file_row_number > file_start_index && file_row_number <= file_end_index) {
+                // 实际属性转换代码
+                if (file_cur_index <= features.size()) {
+                    features[file_cur_index - 1].setGeometryPoint(line, file_cur_index, &mapMetadata);
+                }
+            } else {
+                // 无效行，包括属性文件前几行
+
+            }
+        }
+    }
+    file.close();
+    return this;
 }

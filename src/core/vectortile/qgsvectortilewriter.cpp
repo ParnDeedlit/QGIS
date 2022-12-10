@@ -71,10 +71,11 @@ bool QgsVectorTileWriter::writeTiles( QgsFeedback *feedback )
 
   QString sourceType = dsUri.param( QStringLiteral( "type" ) );
   QString sourcePath = dsUri.param( QStringLiteral( "url" ) );
-  qDebug() << sourcePath;
+
   QString replaceJson(sourcePath);
   QString replaceMeta(sourcePath);
   QString replaceStyle(sourcePath);
+
   //-------------------------------------------------------------------------------
   QgsCoordinateTransform ct( mRootTileMatrix.crs(), QgsCoordinateReferenceSystem( "EPSG:4326" ), mTransformContext );
   ct.setBallparkTransformsAreAppropriate( true );

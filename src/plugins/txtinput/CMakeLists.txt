@@ -6,6 +6,7 @@ set (txtinput_SRCS
   txtinput.cpp
   txtinputDock.cpp
   txtexporttopostgis.cpp
+  geopackage.cpp
   txtreader.cpp
   txtwriter.cpp
   odatadefine.cpp

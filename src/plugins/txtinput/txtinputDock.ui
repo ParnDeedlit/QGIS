@@ -85,6 +85,9 @@
      </item>
      <item row="1" column="0" colspan="2">
       <widget class="QLineEdit" name="directoryEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>/opt/data_odata/ODATA/100</string>
        </property>
@@ -307,8 +310,37 @@
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
-      <string>GeoJSON</string>
+      <string>GeoPackage</string>
      </attribute>
+     <widget class="QPushButton" name="selectGeopackageDirctionButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>341</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>选择本地保留位置</string>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="geopackageDirectoryEdit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>341</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <property name="placeholderText">
+       <string>geopackage的保存路径</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="layoutWidget">
@@ -373,7 +405,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>军交格式</string>
+      <string>军标格式</string>
      </property>
     </widget>
     <widget class="QRadioButton" name="radioNewOdata">
@@ -386,7 +418,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>新一代军交</string>
+      <string>新一代军标</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -421,9 +453,9 @@
     <widget class="QSplitter" name="splitter">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>20</x>
        <y>30</y>
-       <width>224</width>
+       <width>331</width>
        <height>23</height>
       </rect>
      </property>
@@ -432,15 +464,15 @@
      </property>
      <widget class="QRadioButton" name="radioPostgis">
       <property name="text">
-       <string>PostGIS</string>
+       <string>PostGIS(在线测试)</string>
       </property>
       <property name="checked">
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioGeojson">
+     <widget class="QRadioButton" name="radioGeopackage">
       <property name="text">
-       <string>GeoJSON</string>
+       <string>GeoPackage(离线生产)</string>
       </property>
      </widget>
     </widget>

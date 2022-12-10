@@ -4,6 +4,7 @@
 #include "qgspostgresconn.h"
 
 #include <QString>
+#include <sqlite3.h>
 
 #include "odatadefine.h"
 #include "odatafeature.h"
@@ -36,6 +37,11 @@ public:
     void writeToPostgis(PGconn *conn, int batchcount = 10);
     void writeToGeojson(QString uri, int batchcount = 10);
 
+    void excuteGeopackage(sqlite3 *conn);
+    void deleteGeopackageHasExist(sqlite3 *conn);
+    void checkGeopackageHasExist(sqlite3 *conn);
+    void writeToGeopackage(sqlite3 *conn, int batchcount = 10);
+
     Layer* readFromFile();
 
     Layer* readFromMsFile();
@@ -56,6 +62,7 @@ private:
     Layer* parseField();
     Layer* parseUrl();
     QString fieldsToColumn();
+    QString fieldsToColumnBySqlite();
     QString typeToColumn();
 
 };
